@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="506f4178-61c5-4b24-87d7-a59d32842864" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1Wv7vxsItXDeRc3cpnI5CFDwYY5" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="full.screen.before.presentation.mode" value="false" />
+    <property name="ignore.virus.scanning.warn.message" value="true" />
+    <property name="last_opened_file_path" value="D:/Anaconda" />
+    <property name="restartRequiresConfirmation" value="false" />
+    <property name="settings.editor.selected.configurable" value="fileTemplates" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\GitHubRepos\Statistical-Pattern-Recognition-Assignments\Assignment 1" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Single" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Assignment 1" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Single.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.Single" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="506f4178-61c5-4b24-87d7-a59d32842864" name="Default Changelist" comment="" />
+      <created>1580018448403</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1580018448403</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="72" y="199" key="#Notifications" timestamp="1580019955581">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="72" y="199" key="#Notifications/0.0.1920.1080@0.0.1920.1080" timestamp="1580019955580" />
+    <state x="46" y="94" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1580018884487">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="46" y="94" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1580018884487" />
+    <state x="229" y="344" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1580025216496">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="229" y="344" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1080@0.0.1920.1080" timestamp="1580025216496" />
+    <state x="88" y="186" key="#xdebugger.XInspectDialog" timestamp="1580032792287">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="88" y="186" key="#xdebugger.XInspectDialog/0.0.1536.864@0.0.1536.864" timestamp="1580032792287" />
+    <state x="715" y="244" key="#xdebugger.evaluate" timestamp="1580028952012">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="715" y="244" key="#xdebugger.evaluate/0.0.1920.1080@0.0.1920.1080" timestamp="1580028952012" />
+    <state x="259" y="316" key="FileChooserDialogImpl" timestamp="1580021157490">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="259" y="316" key="FileChooserDialogImpl/0.0.1920.1080@0.0.1920.1080" timestamp="1580021157490" />
+    <state width="1515" height="223" key="GridCell.Tab.0.bottom" timestamp="1580037120396">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.0.bottom.inPresentationMode" timestamp="1580030331918">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.0.bottom.inPresentationMode/0.0.1920.1080@0.0.1920.1080" timestamp="1580030331918" />
+    <state width="1515" height="223" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1580037120396" />
+    <state width="1899" height="355" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1580030260558" />
+    <state width="1515" height="223" key="GridCell.Tab.0.center" timestamp="1580037120396">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.0.center.inPresentationMode" timestamp="1580030331918">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.0.center.inPresentationMode/0.0.1920.1080@0.0.1920.1080" timestamp="1580030331918" />
+    <state width="1515" height="223" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1580037120396" />
+    <state width="1899" height="355" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1580030260558" />
+    <state width="1515" height="223" key="GridCell.Tab.0.left" timestamp="1580037120396">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.0.left.inPresentationMode" timestamp="1580030331918">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.0.left.inPresentationMode/0.0.1920.1080@0.0.1920.1080" timestamp="1580030331918" />
+    <state width="1515" height="223" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1580037120396" />
+    <state width="1899" height="355" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1580030260558" />
+    <state width="1515" height="223" key="GridCell.Tab.0.right" timestamp="1580037120396">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.0.right.inPresentationMode" timestamp="1580030331918">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.0.right.inPresentationMode/0.0.1920.1080@0.0.1920.1080" timestamp="1580030331918" />
+    <state width="1515" height="223" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1580037120396" />
+    <state width="1899" height="355" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1580030260558" />
+    <state width="1515" height="387" key="GridCell.Tab.1.bottom" timestamp="1580037120378">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.1.bottom.inPresentationMode" timestamp="1580030331918">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.1.bottom.inPresentationMode/0.0.1920.1080@0.0.1920.1080" timestamp="1580030331918" />
+    <state width="1515" height="387" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1580037120378" />
+    <state width="1899" height="355" key="GridCell.Tab.1.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1580030263251" />
+    <state width="1515" height="387" key="GridCell.Tab.1.center" timestamp="1580037120378">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.1.center.inPresentationMode" timestamp="1580030331918">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.1.center.inPresentationMode/0.0.1920.1080@0.0.1920.1080" timestamp="1580030331918" />
+    <state width="1515" height="387" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1580037120378" />
+    <state width="1899" height="355" key="GridCell.Tab.1.center/0.0.1920.1080@0.0.1920.1080" timestamp="1580030263251" />
+    <state width="1515" height="387" key="GridCell.Tab.1.left" timestamp="1580037120378">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.1.left.inPresentationMode" timestamp="1580030331918">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.1.left.inPresentationMode/0.0.1920.1080@0.0.1920.1080" timestamp="1580030331918" />
+    <state width="1515" height="387" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1580037120378" />
+    <state width="1899" height="355" key="GridCell.Tab.1.left/0.0.1920.1080@0.0.1920.1080" timestamp="1580030263251" />
+    <state width="1515" height="387" key="GridCell.Tab.1.right" timestamp="1580037120378">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.1.right.inPresentationMode" timestamp="1580030331918">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1899" height="355" key="GridCell.Tab.1.right.inPresentationMode/0.0.1920.1080@0.0.1920.1080" timestamp="1580030331918" />
+    <state width="1515" height="387" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1580037120378" />
+    <state width="1899" height="355" key="GridCell.Tab.1.right/0.0.1920.1080@0.0.1920.1080" timestamp="1580030263251" />
+    <state x="-7" y="0" width="974" height="1080" key="SettingsEditor" timestamp="1580025299988">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="-7" y="0" width="974" height="1080" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1580025299988" />
+    <state width="775" height="439" key="XDebugger.FullValuePopup" timestamp="1580032998167">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state width="775" height="439" key="XDebugger.FullValuePopup/0.0.1536.864@0.0.1536.864" timestamp="1580032998167" />
+    <state width="968" height="548" key="XDebugger.FullValuePopup/0.0.1920.1080@0.0.1920.1080" timestamp="1580029674950" />
+    <state x="656" y="365" key="com.intellij.ide.util.TipDialog" timestamp="1580019265054">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="656" y="365" key="com.intellij.ide.util.TipDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1580019265054" />
+    <state x="531" y="277" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1580029984145">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="531" y="277" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.0.1920.1080@0.0.1920.1080" timestamp="1580029984144" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Single.py</url>
+          <line>259</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Single.py</url>
+          <line>307</line>
+          <option name="timeStamp" value="15" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Single.py</url>
+          <line>377</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Single.py</url>
+          <line>465</line>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="np_list_of_words" />
+      </configuration>
+    </watches-manager>
+  </component>
+</project>
