@@ -18,7 +18,7 @@ import scipy
 from sklearn.naive_bayes import MultinomialNB
 # In[2]
 #import nltk
-#nltk.download('stopwords')
+nltk.download('stopwords')
 
 stop_words = set(stopwords.words('english'))
 
@@ -120,13 +120,13 @@ x_train, x_test, y_train, y_test = model_selection.train_test_split(x, y, test_s
 # training testing separated 
 # now we can choose what will we take to do training
 # In[6]
-
-scipy.io.savemat('file_feat_x.mat', mdict={'x':(x)})
-scipy.io.savemat('file_feat_lab_y.mat', mdict={'y':(y)})
-scipy.io.savemat('file_feat_x_train.mat', mdict={'x_train':(x_train)})
-scipy.io.savemat('file_feat_lab_y_train.mat', mdict={'y_train':(y_train)})
-scipy.io.savemat('file_feat_x_test.mat', mdict={'x_test':(x_test)})
-scipy.io.savemat('file_feat_lab_y_test.mat', mdict={'y_test':(y_test)})
+#
+#scipy.io.savemat('file_feat_x.mat', mdict={'x':(x)})
+#scipy.io.savemat('file_feat_lab_y.mat', mdict={'y':(y)})
+#scipy.io.savemat('file_feat_x_train.mat', mdict={'x_train':(x_train)})
+#scipy.io.savemat('file_feat_lab_y_train.mat', mdict={'y_train':(y_train)})
+#scipy.io.savemat('file_feat_x_test.mat', mdict={'x_test':(x_test)})
+#scipy.io.savemat('file_feat_lab_y_test.mat', mdict={'y_test':(y_test)})
 # In[7]
 
 clf = MultinomialNB()
