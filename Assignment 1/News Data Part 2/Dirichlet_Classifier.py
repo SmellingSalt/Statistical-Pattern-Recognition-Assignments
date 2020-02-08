@@ -78,7 +78,7 @@ for i in range(0,nmbr_of_files):
     test_sample=x_test[i][:]
     for j in range(0,nmbr_of_classes):
         final_alpha[j][:]=alpha[j][:]+x_test[i][:] #Skewing the trained alpha 
-        threshold[j][:]=max(final_alpha[j][:])/1000
+        threshold[j][:]=max(final_alpha[j][:])/1
         final_alpha[j][final_alpha[j][:]<threshold[j][:]]=1
     dirich_samples=np.random.dirichlet(final_alpha)
     y_pred[0][i]=np.argmax(dirich_samples/100)
