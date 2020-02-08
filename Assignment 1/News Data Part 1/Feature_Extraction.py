@@ -8,7 +8,7 @@ Created on Sun Feb  2 09:41:15 2020
 
 
 #import nltk
-def Feature_Extractor(Folder_Name):      
+def Feature_Extractor(Folder_Name, vocab_length):      
     # In[1]: import library
     import numpy as np
     import pandas as pd
@@ -70,7 +70,7 @@ def Feature_Extractor(Folder_Name):
     kvocab={}
     
     # Frequency of 2000th most occured word
-    z = sorted_vocab[1500][1]
+    z = sorted_vocab[vocab_length][1]
     print("Done")
     print("\n")
     for x in sorted_vocab:
