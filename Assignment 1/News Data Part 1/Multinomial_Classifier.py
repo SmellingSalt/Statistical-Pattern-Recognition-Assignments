@@ -20,7 +20,7 @@ import scipy.io
 from Feature_Extraction import Feature_Extractor
 fast_run=1
 #%%  EXTRACTING FEATURES FROM DATA
-if fast_run==1:
+if fast_run==0:
     Folder_Name='./20_news_small/'
     [x_train, x_test, y_train, y_test, x,y, train_score, test_score]= Feature_Extractor(Folder_Name,2000)
     
@@ -53,15 +53,16 @@ del temp1, temp2, temp3, temp4, temp5, temp6
 unique_classes=np.unique(y_train)
 nmbr_of_classes=len(unique_classes)
 marg_prob=np.zeros((nmbr_of_classes,vocab_length))
+
 for i in range(0,nmbr_of_files):
                     #RAW PROBABILITIES    
     marg_prob[y_train[0][i],:]=marg_prob[y_train[0][i],:]+x_train[i,:] #frequency of each word in the classs
                     #SMOOTHING
-    alpha=10
-    marg_prob=marg_prob+alpha
-    d=vocab_length
 normalising_factor=np.sum(marg_prob, axis = 1) #Count of all words in each class
+alpha=0.01
+marg_prob=marg_prob+alpha
 
+d=vocab_length
 normalising_factor=normalising_factor+alpha*(d+1/alpha)
 marg_prob=marg_prob/normalising_factor[:,None] # The None part allows for division of matrix by vector
 
