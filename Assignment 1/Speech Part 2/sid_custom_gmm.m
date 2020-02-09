@@ -12,10 +12,10 @@ Nomfccs=14;Nbands=22;Framesize=20;FrameShift=10;Del=1;DelDel=1;NDL=2;
 %% training
 for i=1:size(folders,1)
     dd=dir(strcat(base_path,'/',folders(i,:)));
-    files=char(dd.name);
-    files=files(3:end,:);
-    for j=1:size(files,1)-1
-        filepath=strcat(base_path,'/',folders(i,:),'/',files(j,:));
+    files_1=char(dd.name);
+    files_1=files_1(3:end,:);
+    for j=1:size(files_1,1)-1
+        filepath=strcat(base_path,'/',folders(i,:),'/',files_1(j,:));
         [d,fs]=audioread(filepath);
         
         d=d-mean(d);
@@ -42,10 +42,10 @@ end
 
 for i=1:size(folders,1)
     dd=dir(strcat(base_path,'/',folders(i,:)));
-    files=char(dd.name);
-    files=files(3:end,:);
-    for j=size(files,1)
-        filepath=strcat(base_path,'/',folders(i,:),'/',files(j,:));
+    files_1=char(dd.name);
+    files_1=files_1(3:end,:);
+    for j=size(files_1,1)
+        filepath=strcat(base_path,'/',folders(i,:),'/',files_1(j,:));
         [d,fs]=audioread(filepath);
         
         d=d-mean(d);
@@ -63,7 +63,7 @@ for i=1:size(folders,1)
         
     end
     for k=1:size(folders,1)
-      llk(k) = mean(compute_llk(xmfcc,m{k},var{k},weights{k}));      
+        llk(k) = mean(compute_llk(xmfcc,m{k},var{k},weights{k}));      
     end
     score{i}=llk;
     
