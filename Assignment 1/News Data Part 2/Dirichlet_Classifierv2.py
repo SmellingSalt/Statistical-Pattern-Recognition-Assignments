@@ -21,7 +21,7 @@ from scipy.stats import dirichlet
 from Feature_Extraction import Feature_Extractor
 from dirichlet import mle
 from dirichlet import loglikelihood
-fast_run=1
+fast_run=0
 #%%  EXTRACTING FEATURES FROM DATA
 if fast_run==0:
     Folder_Name='./20_news_small/'

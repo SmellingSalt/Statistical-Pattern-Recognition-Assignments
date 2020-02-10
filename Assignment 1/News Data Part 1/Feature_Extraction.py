@@ -36,7 +36,7 @@ def Feature_Extractor(Folder_Name, vocab_length):
                    'reply-to:', 'thu', 'nntp-posting-host:', 're:','25''18'"i'd"'>i''22''fri,''23''>the','references:',
                    'xref:','sender:','writes:','1993','organization:']
     
-    directory = [f for f in os.listdir('./20_news_small') if not f.startswith('.')]
+    directory = [f for f in os.listdir(Folder_Name) if not f.startswith('.')]
     
     print("Creating a dictionary of words with their frequency")
     # Create a dictionary of words with their frequency
