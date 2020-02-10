@@ -101,7 +101,7 @@ def Feature_Extractor(Folder_Name, vocab_length):
             for word in text.split():
                 if word.lower() in features_list:
                     df[word.lower()][len(df)-1] += 1
-            print("Done with file ",j, "in directory ",i+1)
+        print("Done with directory ",i+1)
     
     # df.head()
     # In[5]
