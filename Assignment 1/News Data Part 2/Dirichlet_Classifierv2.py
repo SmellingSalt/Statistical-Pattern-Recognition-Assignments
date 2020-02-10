@@ -19,7 +19,8 @@ import scipy.io
 from scipy.stats import dirichlet
 # from sklearn.naive_bayes import MultinomialNB
 from Feature_Extraction import Feature_Extractor
-from dirichlet import mle, loglikelihood
+from dirichlet import mle
+from dirichlet import loglikelihood
 fast_run=1
 #%%  EXTRACTING FEATURES FROM DATA
 if fast_run==0:
@@ -50,35 +51,40 @@ train_score=temp5["train_score"]
 test_score=temp6["test_score"]
 del temp1, temp2, temp3, temp4, temp5, temp6
 
-#%% COMPUTING THE DIRICHLET PARAMETERS
+#%% PARAMETERS FOR LOOPING LATER
 [nmbr_of_files,vocab_length]=np.shape(x_train)
 unique_classes=np.unique(y_train)
 nmbr_of_classes=len(unique_classes)
 
-#initialising uniform alphas
-alpha=np.ones((nmbr_of_classes,vocab_length))
-frequencies=np.zeros((nmbr_of_classes,vocab_length))
-for i in range(0,nmbr_of_files):
-                    #FINDING THE COUNT OF EACH WORD IN EACH CLASS   
-    frequencies[y_train[0][i],:]=frequencies[y_train[0][i],:]+x_train[i,:] #frequency of each word in the classs
+#%% NORMALISING TRAINING DATA
+normalising_factor=np.sum(x_train, axis = 1) #Count of all words in each class
+eta=1.1625
+x_train=x_train+eta
+x_train=x_train/(normalising_factor[:,None]+eta*vocab_length)
 
-alpha=alpha+frequencies
-normalising_factor=np.sum(frequencies, axis = 1) #Count of all words in each class
+#%% COMPUTING OPTIMAL ALPHAS FOR EACH CLASS (MLE)
+alpha=np.zeros((nmbr_of_classes,vocab_length))
+for i in range(0,nmbr_of_classes):        
+    alpha[i][:]=mle(x_train[y_train[0][:]==i][:],tol=1e-7, method='meanprecision', maxiter=100000)
+#initialising uniform alphas
 
 #%%                                                             RUNNING CLASSIFIER
                                                         #NORMALISING THE INPUT TEST SAMPLES.
 [nmbr_of_files,vocab_length]=np.shape(x_test)
 sample_normalising_factor=np.sum(x_test,axis=1)
-x_test=x_test/sample_normalising_factor[:,None]
+#LAPLACE SMOOTHING x_test
+x_test=x_test+eta
+x_test=x_test/(sample_normalising_factor[:,None]+eta*vocab_length)
                                                                       #TESTING
+
+
 
 y_pred=np.zeros((1,nmbr_of_files))                                              
 likelihoods=np.zeros((nmbr_of_classes,1))
-threshold=np.zeros((nmbr_of_classes,1))
 for i in range(0,nmbr_of_files):
     test_sample=x_test[i][:]
     for j in range(0,nmbr_of_classes):
-        likelihoods[j][:]=dirichlet.pdf(x_test[i][:],alpha[j][:]) #Skewing the trained alpha                 
+        likelihoods[j][:]=loglikelihood(x_test[i][:],alpha[j][:]) #Skewing the trained alpha                 
     y_pred[0][i]=np.argmax(likelihoods)
     
 # np.random.dirichlet(alpha)
