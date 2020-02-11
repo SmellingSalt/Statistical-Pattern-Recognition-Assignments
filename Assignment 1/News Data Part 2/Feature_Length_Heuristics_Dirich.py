@@ -9,7 +9,7 @@ import numpy as np
 import scipy.io
 from Dirichlet_Classifierv2 import Dirich
 
-step=100
+step=20
 vocab_length= range(50, 2000,step)
 our_score=np.zeros((len(vocab_length),1))
 y_true=[]#np.zeros((len(vocab_length),1))

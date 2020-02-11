@@ -51,7 +51,7 @@ def plot_confusion_matrix(cm,
         # cmap = plt.get_cmap('YlGnBu')
         cmap = plt.get_cmap('YlOrRd')
 
-    plt.figure(figsize=(8, 6))
+    plt.figure(num=None, figsize=(10, 10), dpi=100, facecolor='w', edgecolor='k')
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
     plt.colorbar()
