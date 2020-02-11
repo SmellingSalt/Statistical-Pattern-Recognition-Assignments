@@ -21,8 +21,8 @@ def MultiClass(vocab_length):
     fast_run=0
     #%%  EXTRACTING FEATURES FROM DATA
     if fast_run==0:
-        # Folder_Name='./20_news_small/'
-        Folder_Name='./20_newsgroups/'
+        Folder_Name='./20_news_small/'
+        # Folder_Name='./20_newsgroups/'
         [x_train, x_test, y_train, y_test, x,y, train_score, test_score]= Feature_Extractor(Folder_Name,vocab_length)
         
                                     #%% SAVING THE VARIABLES AND IMPORTING THEM TO AVOID LONG EXTRACTION TIMES
@@ -82,8 +82,7 @@ def MultiClass(vocab_length):
     #%%                                                             TESTING RESULTS
         
     diffrnce=y_pred-y_test
-    diffrnce=(diffrnce!=0)
-    diffrnce=diffrnce.astype(int)
+    diffrnce[diffrnce!=0]=1
     
     incorrect=sum(diffrnce[0][:])
     accuracy=(1-(incorrect/nmbr_of_files))*100
