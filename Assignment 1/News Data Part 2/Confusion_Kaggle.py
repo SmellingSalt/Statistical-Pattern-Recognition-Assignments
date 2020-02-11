@@ -50,10 +50,13 @@ def plot_confusion_matrix(cm,
     if cmap is None:
         # cmap = plt.get_cmap('YlGnBu')
         cmap = plt.get_cmap('YlOrRd')
-
-    plt.figure(num=None, figsize=(10, 10), dpi=100, facecolor='w', edgecolor='k')
+    
+    # plt.rcParams.update({'font.size': 20})
+    plt.figure(num=None, figsize=(10, 10), dpi=150, facecolor='w', edgecolor='k')    
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.rcParams.update({'font.size': 15})
     plt.title(title)
+    plt.rcParams.update({'font.size': 22})
     plt.colorbar()
 
     if target_names is not None:
