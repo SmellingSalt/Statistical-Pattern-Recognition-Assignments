@@ -108,4 +108,4 @@ def Dirich(vocab_length):
     # test_score=test_score*100
     
     # print("In-built function gives: ",train_score[0][0], "% accuracy on training set and", test_score[0][0],"% accuracy on testing set")
-    return accuracy, test_score
+    return accuracy, test_score, y_pred, y_test
