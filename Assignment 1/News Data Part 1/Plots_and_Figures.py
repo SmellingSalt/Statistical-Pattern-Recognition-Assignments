@@ -7,7 +7,7 @@ Created on Tue Feb 11 09:15:11 2020
 """
 
 import scipy.io
-import sklearn
+import sklearn.metrics
 from Confusion_Kaggle import plot_confusion_matrix
 import numpy as np
 temp1=scipy.io.loadmat('Acurracies/y_true.mat')

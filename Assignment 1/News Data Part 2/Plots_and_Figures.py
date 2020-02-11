@@ -7,7 +7,7 @@ Created on Tue Feb 11 09:15:11 2020
 """
 
 import scipy.io
-import sklearn
+import sklearn.metrics
 from Confusion_Kaggle import plot_confusion_matrix
 import numpy as np
 temp1=scipy.io.loadmat('Acurracies/y_true.mat')
@@ -30,7 +30,7 @@ x = range(50, 2000,100)
 plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')
 # plt.imshow(cm, interpolation='nearest', cmap=cmap)
 plt.plot(x,accuracy)
-plt.title('Dirichlet 20 Class')
+plt.title('Multinomial 20 Class')
 
 plt.xlabel('Vocabulary Size')
 plt.ylabel('Accuracy %')
