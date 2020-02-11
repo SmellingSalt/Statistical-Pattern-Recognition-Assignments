@@ -21,6 +21,7 @@ def MultiClass(vocab_length):
     fast_run=0
     #%%  EXTRACTING FEATURES FROM DATA
     if fast_run==0:
+        # Folder_Name='./20_news_small/'
         Folder_Name='./20_newsgroups/'
         [x_train, x_test, y_train, y_test, x,y, train_score, test_score]= Feature_Extractor(Folder_Name,vocab_length)
         
@@ -92,4 +93,4 @@ def MultiClass(vocab_length):
     # test_score=test_score*100
     
     # print("In-built function gives: ",train_score[0][0], "% accuracy on training set \n and", test_score[0][0],"% accuracy on testing set")
-    return accuracy, test_score
+    return accuracy, test_score, y_pred, y_test
