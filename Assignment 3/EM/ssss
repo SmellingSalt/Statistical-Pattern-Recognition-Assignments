@@ -7,8 +7,44 @@ Created on Fri Mar  6 12:09:54 2020
 """
 
 #%% MODULE IMPORT
+import os
+from glob import glob
+from pandas import read_csv
 import numpy as np
 from scipy.stats import multivariate_normal
+
+class GMM(object):
+    def __init__(self,K,mu,cov,prop):
+        self.K=K
+        self.mu=mu
+        self.cov=cov
+        self.prop=prop
+        
+    @property
+    def theta(self):
+        return [self.mu, self. cov, self.prop]
+#%% OLD FAITHFUL DATASET
+def Get_Old_Faithful():
+    path_to_data=os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Data'))
+    csv_data=glob(os.path.join(path_to_data, "*.csv"))
+    iter=0
+    data=[]
+    for files in csv_data:
+        temp = read_csv(csv_data[iter])
+        temp=temp.values
+        data.append(temp)
+        iter=iter+10
+    # converting it into a float array
+    data=np.squeeze(np.asarray(data))
+ 
+    #%% Normalizing
+    data_mean=np.mean(data,axis=0)
+    data_std=np.std(data,axis=0)
+    data=data-data_mean
+    data=data/data_std
+    #Creating a data label column to say which cluster a point lies in
+    data[:,0]=0  
+    return data      
 #%% Running the E-Step
 def E_Step(data,K,theta):
     means=theta[0]
@@ -89,3 +125,4 @@ def draw_ellipse(position, covariance, ax=None, **kwargs):
     for nsig in range(1, 4):
         ax.add_patch(Ellipse(position, nsig * width, nsig * height,
                              angle, **kwargs))
+        

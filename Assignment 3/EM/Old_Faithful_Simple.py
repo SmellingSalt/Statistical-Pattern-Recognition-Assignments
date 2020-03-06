@@ -10,7 +10,7 @@ import os
 from glob import glob
 from pandas import read_csv
 import numpy as np
-import my_Functions as mf
+import my_functions as mf
 import matplotlib.pyplot as plt
 path_to_data=os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Data'))
 csv_data=glob(os.path.join(path_to_data, "*.csv"))
@@ -33,7 +33,7 @@ data[:,0]=0
 #%% DATA DIMENSION
 N=2
 #%% CLUSTER SIZE
-K=5
+K=3
 #%% Initialisations
 means=np.random.randn(N,K)
 means=np.squeeze(means)
