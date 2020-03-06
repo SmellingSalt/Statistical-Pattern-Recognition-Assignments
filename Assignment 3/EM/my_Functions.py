@@ -20,10 +20,10 @@ def E_Step(data,K,theta):
         itr=0    
         for x in data[:,1:]:
             normalising=0
-            N_xn=multivariate_normal.pdf(x,mean=means[:,i], cov=Covariance[:][:][i])
+            N_xn=multivariate_normal.pdf(x,mean=means[:,i], cov=Covariance[:,:,i])
             responsibility[itr][i]=proportions[i]*N_xn
             for j in range(K):
-                normalising+=proportions[j]*multivariate_normal.pdf(x,mean=means[:,j], cov=Covariance[:][:][j])
+                normalising+=proportions[j]*multivariate_normal.pdf(x,mean=means[:,j], cov=Covariance[:,:,j])
             responsibility[itr][i]=responsibility[itr][i]/normalising
             itr+=1
     return responsibility
@@ -31,32 +31,61 @@ def E_Step(data,K,theta):
 def M_Step(data,responsibility):
     [N,K]=np.shape(responsibility) #N is number of data points
     [_,d]=np.shape(data[:,1:]) #Data dimension
+    
     #Compute Proportions
-    proportions=np.zeros((K,1))
-    for i in range(K):
-        nk=np.sum(data[:,0]==i)
-        proportions[i]=nk/N
+    Nk=np.sum(responsibility,axis=0)
+    proportions=Nk/N
         
     #Compute Means
     means=np.zeros((K,d))        
     for k in range(K):
         temp1=data[:,1:]
         temp2=responsibility[:,k]
-        temp=temp1*temp2[:,None]
-        means[k]=(1/proportions[k])*np.sum(temp,axis=0)        
+        temp=temp1*temp2[:,None] #multiplying a vector with multiple columns
+        means[k]=(1/Nk[k])*np.sum(temp,axis=0)  
+    means=np.transpose(means)
         
     #Compute Covariance
     Covariance=np.zeros((d,d,K))        
     for k in range(K):
         for n in range(N):
-            temp1=data[n,1:]-means[k]
+            temp1=data[n,1:]-means[:,k]
             temp2=np.outer(temp1,np.transpose(temp1))
             temp=responsibility[n,k]*temp2
             Covariance[:,:,k]+=temp
-        Covariance[:,:,k]=(1/proportions[k])*Covariance[:,:,k]
+        Covariance[:,:,k]=(1/Nk[k])*Covariance[:,:,k]
     
     theta=[means,Covariance,proportions]
-    return theta
-        
+    Likelihood=0
+    log_likelihood=0
+    for n in range(N):
+        for k in range(K):
+            Likelihood+=proportions[k]*multivariate_normal.pdf(data[n,1:],mean=means[:,k], cov=Covariance[:,:,k])
+        log_likelihood+=np.log(Likelihood)
+            
+    return theta, log_likelihood
+
+#%% PLOTS
+
+
+import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
+def draw_ellipse(position, covariance, ax=None, **kwargs):
+# taken from
+# https://github.com/DFoly/Gaussian-Mixture-Modelling/blob/master/gaussian-mixture-model.ipynb
+    """Draw an ellipse with a given position and covariance"""
+    ax = ax or plt.gca()
     
+    # Convert covariance to principal axes
+    if covariance.shape == (2, 2):
+        U, s, Vt = np.linalg.svd(covariance)
+        angle = np.degrees(np.arctan2(U[1, 0], U[0, 0]))
+        width, height = 2 * np.sqrt(s)
+    else:
+        angle = 0
+        width, height = 2 * np.sqrt(covariance)
     
+    # Draw the Ellipse
+    for nsig in range(1, 4):
+        ax.add_patch(Ellipse(position, nsig * width, nsig * height,
+                             angle, **kwargs))
