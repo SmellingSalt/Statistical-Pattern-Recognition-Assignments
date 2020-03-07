@@ -21,11 +21,13 @@ if dataset==0:
     title_name="Old-Faithful Dataset GMM Clustering "+str(K)+" clusters"
     x_name="Duration"
     y_name="Wait Time"
+    pick_means=np.random.randint(0,272,K)
 elif dataset==1:
     data=mf.Get_Sythetic(K, d, N)
     title_name="Synthetic DataSet GMM Clustering with "+str(K)+" clusters"
     x_name="First Feature"
     y_name="Second Feature"
+    pick_means=np.random.randint(0,N,K)
 else:
     dataset=-1
 
@@ -33,7 +35,7 @@ else:
 #The first column is left empty and is used to indicate which cluster a point belongs to
 [_,d]=np.shape(data[:,1:]) 
 #%% Initialisations
-pick_means=np.random.randint(0,N,K)
+
 means=data[pick_means,1:]
 means=np.transpose(means)
 Covariance=np.zeros((d,d,K))
@@ -52,18 +54,19 @@ liklihood_history=[]
 iterations=0
 cluster_label_hist=[]
 # while epsilon>1e-9 and iterations<100:
-while epsilon > 1e-3 and iterations<30:
-    responsibility=mf.E_Step(data, K, theta)
-    cluster_label=np.argmax(responsibility,axis=1)
+while epsilon > 1e-3 and iterations<50:
+    responsibility=mf.E_Step_GMM(data, K, theta) #Compute Responibility
+    cluster_label=np.argmax(responsibility,axis=1) #Label Points
     data[:,0]=cluster_label #Assigning cluster
-    [theta,log_likelihood]=mf.M_Step(data,responsibility)
-    cluster_label_hist.append(cluster_label)
-    theta_history.append(theta)
-    liklihood_history.append(log_likelihood)
-    epsilon=log_likelihood-old_likelihood
+    [theta,log_likelihood]=mf.M_Step_GMM(data,responsibility) #M-Step
+    cluster_label_hist.append(cluster_label) #Save history of clusters
+    theta_history.append(theta) #Save parameter history 
+    liklihood_history.append(log_likelihood) #Save likelihood history
+    epsilon=log_likelihood-old_likelihood #Stopping Criterion
     old_likelihood=log_likelihood
     print("Log Likelihood-> ", log_likelihood)
     iterations+=1
 #%% Plots
+mf.Plot_SubPlots(theta_history,cluster_label_hist,data,K,iterations,title_name,x_name,y_name)
+#%%
 mf.Plot_Figs(theta_history,cluster_label_hist,data,K,iterations,title_name,x_name,y_name)
-

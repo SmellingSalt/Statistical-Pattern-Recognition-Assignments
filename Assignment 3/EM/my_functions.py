@@ -46,33 +46,7 @@ def Get_Old_Faithful():
     data=data/data_std
     #Creating a data label column to say which cluster a point lies in
     data[:,0]=0  
-    return data    
-#%% SYNTHETIC DATASET
-def Get_Sythetic(K,d,N,**kwargs):   
-    means=kwargs.get('means',np.random.randint(-100,100,size=[d,K]))
-    covariance=kwargs.get('cov', get_random_cov(K,d))
-    # covariance=kwargs.get('cov', np.dstack([np.eye(d)]*K))
-    data=np.zeros((N,d+1))
-    
-    for n in range(N):
-        k=np.random.randint(0,K)
-        data[:,0]=k
-        data[n,1:]=np.random.multivariate_normal(means[:,k],covariance[:,:,k],size=1)
-            
-    #%% Normalizing
-    data_mean=np.mean(data[:,1:],axis=0)
-    data_std=np.std(data[:,1:],axis=0)
-    data[:,1:]=data[:,1:]-data_mean
-    data[:,1:]=data[:,1:]/data_std    
-    return data
-#%% Random covariance matricies            
-def get_random_cov(K,d):
-    from sklearn import datasets
-    cov=[]
-    for i in range(K):
-        temp=np.dstack([datasets.make_spd_matrix(d)*8])
-        cov.append(temp)
-    return np.dstack(cov)
+    return data 
 #%% MNIST
 """Seema's Code 
 req_class= list of numbers to be input
@@ -80,7 +54,7 @@ eg [1,2,3]
 Function returns a matrix with the first column as all 0's and all rows containing
 the binarized numbers  requested
 """
-def get_mnist_data(req_class):
+def get_MNIST(req_class):
     
     #%
     #from mnist import MNIST
@@ -120,9 +94,37 @@ def get_mnist_data(req_class):
     train_df_data = np.concatenate([np.zeros((train_df_lab.shape[0], 1), dtype=int), train_df_data], axis = 1)
     [train_sff,train_labs] = shuffle(train_df_data, train_df_lab)     # Shuffle the data and label (to properly train the network)
     
-    return(train_sff)
-#%% E-Step
-def E_Step(data,K,theta):
+    return(train_sff)   
+#%% SYNTHETIC DATASET
+def Get_Sythetic(K,d,N,**kwargs):   
+    means=kwargs.get('means',np.random.randint(-100,100,size=[d,K]))
+    covariance=kwargs.get('cov', get_random_cov(K,d))
+    # covariance=kwargs.get('cov', np.dstack([np.eye(d)]*K))
+    data=np.zeros((N,d+1))
+    
+    for n in range(N):
+        k=np.random.randint(0,K)
+        data[:,0]=k
+        data[n,1:]=np.random.multivariate_normal(means[:,k],covariance[:,:,k],size=1)
+
+    #% Normalizing
+    data_mean=np.mean(data[:,1:],axis=0)
+    data_std=np.std(data[:,1:],axis=0)
+    data[:,1:]=data[:,1:]-data_mean
+    data[:,1:]=data[:,1:]/data_std    
+    return data
+#%% Random covariance matricies            
+def get_random_cov(K,d):
+    from sklearn import datasets
+    cov=[]
+    for i in range(K):
+        temp=np.dstack([datasets.make_spd_matrix(d)*8])
+        cov.append(temp)
+    return np.dstack(cov)
+
+#%% E-Step GMM
+def E_Step_GMM(data,K,theta):
+
     means=theta[0]
     Covariance=theta[1]
     proportions=theta[2]
@@ -137,10 +139,28 @@ def E_Step(data,K,theta):
             for j in range(K):
                 normalising+=proportions[j]*multivariate_normal.pdf(x,mean=means[:,j], cov=Covariance[:,:,j])
             responsibility[itr][i]=responsibility[itr][i]/normalising
-            itr+=1      
+            itr+=1
+
     return responsibility
-#%% M-STEP
-def M_Step(data,responsibility):
+#%% E-Step Bernoulli
+def E_Step_Bern(data,K,theta):
+    U=theta[0]
+    proportions=theta[1]
+    #Computing responsibility coefficients of each point for each cluster.
+    responsibility=np.zeros((len(data),K))
+    for k in range(K):
+        itr=0
+        for x in data[:,1:]:
+            normalising=0
+            P_xn=multi_bern_pdf(x,U[:,k])
+            responsibility[itr][k]=proportions[k]*P_xn
+            for j in range(K):
+                normalising+=proportions[j]*multi_bern_pdf(x,U[:,k])
+            responsibility[itr][k]=responsibility[itr][k]/normalising
+            itr+=1
+    return responsibility
+#%% M-STEP GMM
+def M_Step_GMM(data,responsibility):
     [N,K]=np.shape(responsibility) #N is number of data points
     [_,d]=np.shape(data[:,1:]) #Data dimension
     
@@ -177,6 +197,38 @@ def M_Step(data,responsibility):
             
     return theta, log_likelihood
 
+#%% M-STEP BERNOULLI
+def M_Step_Bern(data,responsibility):
+    [N,K]=np.shape(responsibility) #N is number of data points
+    [_,d]=np.shape(data[:,1:]) #Data dimension
+    
+    #Compute Proportions
+    Nk=np.sum(responsibility,axis=0)
+    proportions=Nk/N
+        
+    #Compute Means
+    means=np.zeros((K,d))        
+    for k in range(K):
+        temp1=data[:,1:]
+        temp2=responsibility[:,k]
+        temp=temp1*temp2[:,None] #multiplying a vector with multiple columns
+        means[k]=(1/Nk[k])*np.sum(temp,axis=0)  
+    means=np.transpose(means)
+    
+    theta=[means,proportions]
+    Likelihood=0
+    log_likelihood=0
+    for n in range(N):
+        for k in range(K):
+            Likelihood+=proportions[k]*multi_bern_pdf(data[n,1:],means[:,k])
+        log_likelihood+=np.log(Likelihood)       
+    return theta, log_likelihood
+#%% MULTI-VARIABLE BERNOULLI PDF
+def multi_bern_pdf(x,U):
+    x=np.asarray(x)
+    U=np.asarray(U)
+    px=(U**x)*((1-U)**(1-x))
+    return np.product((px))
 #%% PLOTS
 
 import matplotlib.pyplot as plt
@@ -184,21 +236,15 @@ from matplotlib.patches import Ellipse
 def Plot_Figs(theta_history,cluster_label_hist,data,K,iterations,title_name,x_name,y_name):
     # plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
     # plt.plot(range(1,iterations+1),liklihood_history)   
-    itr=0
-    # step_size=int(np.ceil(iterations/20))
-    step_size=1
-
-    fig, axs = plt.subplots(6,3, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=True,sharey=True)
-    fig.subplots_adjust(hspace = .5, wspace=.001)
-    axs = axs.ravel()
-    ptr=0
-    for i in range(0,iterations,step_size):
-        # plt.figure(num=itr, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')  
-        # plt.subplots(6, 3, sharey=True,sharex=True)
+    itr=0    
+    
+    for i in range(0,iterations):
+        plt.figure(num=itr, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')                    
         itr+=0
         x=[]
         y=[]
         for k in range(K):
+            
             mean1=theta_history[i+1][0][:,k][0]
             mean2=theta_history[i+1][0][:,k][1]
             plot_data=data[cluster_label_hist[i]==k,1:]
@@ -206,36 +252,26 @@ def Plot_Figs(theta_history,cluster_label_hist,data,K,iterations,title_name,x_na
             y=plot_data[:,1]
             colormap = plt.cm.get_cmap("Set1")                       
         
-            if i<=17 or i>=iterations-2:
-                axs[ptr].scatter(x,y,color=colormap(k),s=5)
-                axs[ptr].scatter(mean1,mean2,color=colormap(k),marker="x",s=50)     
-                draw_ellipse((mean1,mean2),theta_history[i+1][1][:,:,k],alpha=0.2, color=colormap(k),ax=axs[ptr])
-                axs[ptr].set_title("Iteration "+str(i))  
-                                  
-                final_title_name=title_name
-
-                flag_plot=1
-         
-        if i<iterations-step_size and flag_plot==1 and i<17:
-            flag_plot=0
-            ptr+=1
-            # plt.show()
-    fig.text(0.5, 0.9, final_title_name, ha='center',fontsize=21)
-    fig.text(0.5, 0.1, x_name, ha='center',fontsize=21)
-    fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)
-    # fig.xlabel(x_name,fontsize=21)
-    # fig.ylabel(y_name,fontsize=21)
-    # plt.suptitle(final_title_name,fontsize=21)            
+            if i<17 or i>=iterations-1:
+                plt.scatter(x,y,color=colormap(k),s=5)
+                plt.scatter(mean1,mean2,color=colormap(k),marker="o",s=50)     
+                draw_ellipse((mean1,mean2),theta_history[i+1][1][:,:,k],alpha=0.2, color=colormap(k))                                             
+                final_title_name=title_name+" Iteration "+str(i+1)                        
+        # plt.figure(num=itr, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')            
+        plt.title(final_title_name,fontsize=21)            
+        plt.xlabel(x_name,fontsize=21)
+        plt.ylabel(y_name,fontsize=21)        
+        if i<17 or i>=iterations:              
+            plt.show()
     print("Done")
-    
+#%% SUBPLOTS   
 def Plot_SubPlots(theta_history,cluster_label_hist,data,K,iterations,title_name,x_name,y_name):
     itr=0
-    step_size=1
     fig, axs = plt.subplots(6,3, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=True,sharey=True)
     fig.subplots_adjust(hspace = .5, wspace=.001)
     axs = axs.ravel()
     ptr=0
-    for i in range(0,iterations,step_size):
+    for i in range(0,iterations):
         itr+=0
         x=[]
         y=[]
@@ -247,20 +283,15 @@ def Plot_SubPlots(theta_history,cluster_label_hist,data,K,iterations,title_name,
             y=plot_data[:,1]
             colormap = plt.cm.get_cmap("Set1")                       
         
-            if i<=17 or i>=iterations-2:
+            if i<17 or i>=iterations-1:
                 axs[ptr].scatter(x,y,color=colormap(k),s=5)
                 axs[ptr].scatter(mean1,mean2,color=colormap(k),marker="x",s=20)     
                 draw_ellipse((mean1,mean2),theta_history[i+1][1][:,:,k],alpha=0.2, color=colormap(k),ax=axs[ptr])
-                axs[ptr].set_title("Iteration "+str(i))  
+                axs[ptr].set_title("Iteration "+str(i+1))  
                                   
                 final_title_name=title_name
-
-                flag_plot=1
-         
-        if i<iterations-step_size and flag_plot==1 and i<17:
-            flag_plot=0
+        if i<17 or i>=iterations:
             ptr+=1
-            # plt.show()
     fig.text(0.5, 0.9, final_title_name, ha='center',fontsize=21)
     fig.text(0.5, 0.1, x_name, ha='center',fontsize=21)
     fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)         
@@ -287,4 +318,6 @@ def draw_ellipse(position, covariance, ax=None, **kwargs):
     for nsig in range(1, 4):
         ax.add_patch(Ellipse(position, nsig * width, nsig * height,
                              angle, **kwargs))
-        
+#%%
+    
+    
