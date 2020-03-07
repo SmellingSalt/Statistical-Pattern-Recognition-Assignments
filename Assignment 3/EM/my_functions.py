@@ -121,7 +121,7 @@ def get_mnist_data(req_class):
     [train_sff,train_labs] = shuffle(train_df_data, train_df_lab)     # Shuffle the data and label (to properly train the network)
     
     return(train_sff)
-#%% Running the E-Step
+#%% E-Step
 def E_Step(data,K,theta):
     means=theta[0]
     Covariance=theta[1]
@@ -139,7 +139,7 @@ def E_Step(data,K,theta):
             responsibility[itr][i]=responsibility[itr][i]/normalising
             itr+=1      
     return responsibility
-
+#%% M-STEP
 def M_Step(data,responsibility):
     [N,K]=np.shape(responsibility) #N is number of data points
     [_,d]=np.shape(data[:,1:]) #Data dimension
@@ -181,26 +181,89 @@ def M_Step(data,responsibility):
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
-def Plot_Figs(theta_history,data,K,iterations,title_name,x_name,y_name):
+def Plot_Figs(theta_history,cluster_label_hist,data,K,iterations,title_name,x_name,y_name):
     # plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
     # plt.plot(range(1,iterations+1),liklihood_history)   
-    plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
-    plt.scatter(data[:,1],data[:,2])
-    for k in range(K):
+    itr=0
+    # step_size=int(np.ceil(iterations/20))
+    step_size=1
+
+    fig, axs = plt.subplots(6,3, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=True,sharey=True)
+    fig.subplots_adjust(hspace = .5, wspace=.001)
+    axs = axs.ravel()
+    ptr=0
+    for i in range(0,iterations,step_size):
+        # plt.figure(num=itr, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')  
+        # plt.subplots(6, 3, sharey=True,sharex=True)
+        itr+=0
         x=[]
         y=[]
-        for i in range(iterations-1):
-            i=iterations-2
-            temp1=theta_history[i+1][0][:,k][0]
-            temp2=theta_history[i+1][0][:,k][1]
-            x.append(temp1)
-            y.append(temp1)
-        colormap = plt.cm.get_cmap("Set1")
-        plt.scatter(temp1,temp2,color=colormap(k),marker="o",s=220)     
-        draw_ellipse((temp1,temp2),theta_history[i+1][1][:,:,k],alpha=0.2, color=colormap(k))
-    plt.xlabel(x_name,fontsize=21)
-    plt.ylabel(y_name,fontsize=21)
-    plt.title(title_name,fontsize=21)
+        for k in range(K):
+            mean1=theta_history[i+1][0][:,k][0]
+            mean2=theta_history[i+1][0][:,k][1]
+            plot_data=data[cluster_label_hist[i]==k,1:]
+            x=plot_data[:,0]
+            y=plot_data[:,1]
+            colormap = plt.cm.get_cmap("Set1")                       
+        
+            if i<=17 or i>=iterations-2:
+                axs[ptr].scatter(x,y,color=colormap(k),s=5)
+                axs[ptr].scatter(mean1,mean2,color=colormap(k),marker="x",s=50)     
+                draw_ellipse((mean1,mean2),theta_history[i+1][1][:,:,k],alpha=0.2, color=colormap(k),ax=axs[ptr])
+                axs[ptr].set_title("Iteration "+str(i))  
+                                  
+                final_title_name=title_name
+
+                flag_plot=1
+         
+        if i<iterations-step_size and flag_plot==1 and i<17:
+            flag_plot=0
+            ptr+=1
+            # plt.show()
+    fig.text(0.5, 0.9, final_title_name, ha='center',fontsize=21)
+    fig.text(0.5, 0.1, x_name, ha='center',fontsize=21)
+    fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)
+    # fig.xlabel(x_name,fontsize=21)
+    # fig.ylabel(y_name,fontsize=21)
+    # plt.suptitle(final_title_name,fontsize=21)            
+    print("Done")
+    
+def Plot_SubPlots(theta_history,cluster_label_hist,data,K,iterations,title_name,x_name,y_name):
+    itr=0
+    step_size=1
+    fig, axs = plt.subplots(6,3, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=True,sharey=True)
+    fig.subplots_adjust(hspace = .5, wspace=.001)
+    axs = axs.ravel()
+    ptr=0
+    for i in range(0,iterations,step_size):
+        itr+=0
+        x=[]
+        y=[]
+        for k in range(K):
+            mean1=theta_history[i+1][0][:,k][0]
+            mean2=theta_history[i+1][0][:,k][1]
+            plot_data=data[cluster_label_hist[i]==k,1:]
+            x=plot_data[:,0]
+            y=plot_data[:,1]
+            colormap = plt.cm.get_cmap("Set1")                       
+        
+            if i<=17 or i>=iterations-2:
+                axs[ptr].scatter(x,y,color=colormap(k),s=5)
+                axs[ptr].scatter(mean1,mean2,color=colormap(k),marker="x",s=20)     
+                draw_ellipse((mean1,mean2),theta_history[i+1][1][:,:,k],alpha=0.2, color=colormap(k),ax=axs[ptr])
+                axs[ptr].set_title("Iteration "+str(i))  
+                                  
+                final_title_name=title_name
+
+                flag_plot=1
+         
+        if i<iterations-step_size and flag_plot==1 and i<17:
+            flag_plot=0
+            ptr+=1
+            # plt.show()
+    fig.text(0.5, 0.9, final_title_name, ha='center',fontsize=21)
+    fig.text(0.5, 0.1, x_name, ha='center',fontsize=21)
+    fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)         
     print("Done")   
 
 
