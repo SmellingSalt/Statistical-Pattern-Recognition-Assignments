@@ -5,7 +5,7 @@ addpath(genpath('vlfeat'))
 datapath='/home/sysad/Desktop/akshay/Gitrepos/Statistical-Pattern-Recognition-Assignments/Assignment 1/Speech Part 2/Data';
 %% switch
 
-sw=2;
+sw=1;
 
 
 
