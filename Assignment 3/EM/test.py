@@ -113,7 +113,7 @@ def llBernoulli(data, weights, means):
         ll += sumK
     
     return (ll, resp)
-def mixOfBernoulliEM(data, init_weights, init_means, maxiters=1000, relgap=1e-4, verbose=False):
+def mixOfBernoulliEM(data, init_weights, init_means, maxiters=1000, relgap=1e-4, verbose=True):
     '''EM algo fo Mixture of Bernoulli Distributions'''
     N = len(data)
     D = len(data[0])
@@ -124,7 +124,7 @@ def mixOfBernoulliEM(data, init_weights, init_means, maxiters=1000, relgap=1e-4,
     means = init_means[:]
     ll, resp = llBernoulli(data, weights, means)
     ll_old = ll
-    
+    theta=[]
     for i in range(maxiters):
         if verbose and (i % 5 ==0):
             print("iteration {}:".format(i))
@@ -134,10 +134,9 @@ def mixOfBernoulliEM(data, init_weights, init_means, maxiters=1000, relgap=1e-4,
         #E Step: calculate resps
         #Skip, rolled into log likelihood calc
         #For 0th step, done as part of initialization
-            
         #M Step
         weights, means = bernoulliMStep(data, resp)
-        
+        theta.append([weights,means])
         #convergence check
         ll, resp = llBernoulli(data, weights, means)
         if np.abs(ll-ll_old)<relgap:
@@ -149,11 +148,74 @@ def mixOfBernoulliEM(data, init_weights, init_means, maxiters=1000, relgap=1e-4,
     return (weights, means)
 from sklearn.utils import shuffle
 
-def pickData(digits, N):
-    sData, sTarget = shuffle(mnist3, mnist.target, random_state=30)
-    returnData = np.array([sData[i] for i in range(len(sData)) if sTarget[i] in digits])
-    return shuffle(returnData, n_samples=N, random_state=30)
+# def pickData(digits, N):
+#     sData, sTarget = shuffle(mnist3, mnist.target, random_state=30)
+#     returnData=[]
+#     for j in digits:
+#         temp=sData[sTarget==j]
+#         returnData.append(temp)
+#     # returnData = np.array([sData[i] for i in range(len(sData)) if sTarget[i] in digits])
+#     returnData=shuffle(returnData)
+#     return returnData#, n_samples=N, random_state=30)
+#%% MNIST
+"""Seema's Code 
+req_class= list of numbers to be input
+eg [1,2,3]
+Function returns a matrix with the first column as all 0's and all rows containing
+the binarized numbers  requested
+"""
+from skimage.transform import resize
+def get_MNIST(req_class,sze):
+    
+    #%
+    #from mnist import MNIST
+    import numpy as np
+    from sklearn.utils import shuffle   
 
+    
+    #%
+    from keras.datasets import mnist
+    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+    img_rows, img_cols = sze, sze
+    
+    #%
+    # req_class=[2, 3]
+    train_com = []
+    train_lab = []
+        #%   
+    for i in req_class:
+        digit=i
+        cl1 = i
+        i, = np.where(y_train == cl1)
+        cl1_train = x_train[i,:,:]        # pull out the data corresponds to class1
+        cl1_label = y_train[i]            # pull out the data labels corresponds to class1        
+        #Resizing
+        [number_of_images,_,_]=np.shape(cl1_train)
+        temp_train=np.zeros((number_of_images,sze,sze))
+        if sze!=28:
+            for l in range(number_of_images):
+                temp_train[l,:,:]=resize(x_train[l,:,:],(sze,sze))
+                print("Resizing image: ",l, " of digit ",digit)
+            cl1_train=temp_train        
+        
+        cl1_train = cl1_train.astype('float32')
+        cl1_train /= 255
+        cl1_train=cl1_train.reshape(cl1_label.shape[0],img_rows*img_cols)  # flattern the input data   
+        cl1_train[cl1_train>=0.5] = 1
+        cl1_train[cl1_train<0.5] = 0
+        
+        train_com.append(cl1_train) # Merge the data
+        train_lab.append(cl1_label)   # Merge the labels 
+        
+        
+    #%
+    train_df_lab = np.concatenate(train_lab, axis = 0)
+    train_df_data = np.concatenate(train_com, axis = 0)
+    train_df_data = np.concatenate([np.zeros((train_df_lab.shape[0], 1), dtype=int), train_df_data], axis = 1)
+    [train_sff,train_labs] = shuffle(train_df_data, train_df_lab)     # Shuffle the data and label (to properly train the network)
+    
+    return(train_sff)   
+#%%
 def experiments(digits, K, N, iters=50):
     '''
     Picks N random points of the selected 'digits' from MNIST data set and
@@ -161,7 +223,8 @@ def experiments(digits, K, N, iters=50):
     And returns the weights and means.
     '''
     
-    expData = pickData(digits, N)
+    expData = get_MNIST(digits, 28)
+    expData=expData[:,1:]
     
     D = len(expData[0])
 
@@ -171,7 +234,8 @@ def experiments(digits, K, N, iters=50):
     
     #initMeans = np.random.rand(10,D)
     initMeans = np.full((K, D), 1.0/K)
-
-    return mixOfBernoulliEM(expData, initWts, initMeans, maxiters=iters, relgap=1e-15)
-finWeights, finMeans = experiments([2,3,9], 3, 1000)
+    test=mixOfBernoulliEM(expData, initWts, initMeans, maxiters=iters, relgap=1e-15)
+    return test
+#%%
+finWeights, finMeans = experiments([0,1], 3, 1000)
 [show(finMeans[i].reshape(28,28)) for i in range(len(finMeans))]

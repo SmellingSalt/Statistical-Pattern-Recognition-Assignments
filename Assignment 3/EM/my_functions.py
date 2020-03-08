@@ -12,7 +12,7 @@ from glob import glob
 from pandas import read_csv
 import numpy as np
 from scipy.stats import multivariate_normal
-
+from skimage.transform import resize
 class GMM(object):
     def __init__(self,K,mu,cov,prop):
         self.K=K
@@ -54,25 +54,19 @@ eg [1,2,3]
 Function returns a matrix with the first column as all 0's and all rows containing
 the binarized numbers  requested
 """
-def get_MNIST(req_class):
+from skimage.transform import resize
+def get_MNIST(req_class,sze):
     
     #%
     #from mnist import MNIST
     import numpy as np
     from sklearn.utils import shuffle   
-    from skimage.transform import resize
+
     
     #%
     from keras.datasets import mnist
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
-    
-    [number_of_images,_,_]=np.shape(x_train)
-    temp_train=np.zeros((number_of_images,8,8))
-    for i in range(number_of_images):
-        temp_train[i,:,:]=resize(x_train[i,:,:],(8,8))
-        print("Resizing image: ",i)
-    x_train=temp_train
-    img_rows, img_cols = 8, 8
+    img_rows, img_cols = sze, sze
     
     #%
     # req_class=[2, 3]
@@ -80,11 +74,19 @@ def get_MNIST(req_class):
     train_lab = []
         #%   
     for i in req_class:
-        print(i)
+        digit=i
         cl1 = i
         i, = np.where(y_train == cl1)
         cl1_train = x_train[i,:,:]        # pull out the data corresponds to class1
         cl1_label = y_train[i]            # pull out the data labels corresponds to class1        
+        #Resizing
+        [number_of_images,_,_]=np.shape(cl1_train)
+        temp_train=np.zeros((number_of_images,sze,sze))
+        if sze!=28:
+            for l in range(number_of_images):
+                temp_train[l,:,:]=resize(x_train[l,:,:],(sze,sze))
+                print("Resizing image: ",l, " of digit ",digit)
+            cl1_train=temp_train        
         
         cl1_train = cl1_train.astype('float32')
         cl1_train /= 255
@@ -156,14 +158,15 @@ def E_Step_Bern(data,K,theta):
     proportions=theta[1]
     #Computing responsibility coefficients of each point for each cluster.
     responsibility=np.zeros((len(data),K))
+    alpha=0
     for k in range(K):
         itr=0
         for x in data[:,1:]:
             normalising=0
             P_xn=multi_bern_pdf(x,U[:,k])
-            responsibility[itr][k]=proportions[k]*P_xn
+            responsibility[itr][k]=proportions[k]*P_xn+alpha
             for j in range(K):
-                normalising+=proportions[j]*multi_bern_pdf(x,U[:,k])
+                normalising+=proportions[j]*multi_bern_pdf(x,U[:,j])+alpha*K
             responsibility[itr][k]=responsibility[itr][k]/normalising
             itr+=1
     return responsibility
@@ -209,10 +212,10 @@ def M_Step_GMM(data,responsibility):
 def M_Step_Bern(data,responsibility):
     [N,K]=np.shape(responsibility) #N is number of data points
     [_,d]=np.shape(data[:,1:]) #Data dimension
-    
+    alpha=0
     #Compute Proportions
     Nk=np.sum(responsibility,axis=0)
-    proportions=Nk/N
+    proportions=(Nk+alpha)/(N+alpha*K)
         
     #Compute Means
     means=np.zeros((K,d))        
@@ -220,7 +223,7 @@ def M_Step_Bern(data,responsibility):
         temp1=data[:,1:]
         temp2=responsibility[:,k]
         temp=temp1*temp2[:,None] #multiplying a vector with multiple columns
-        means[k]=(1/Nk[k])*np.sum(temp,axis=0)  
+        means[k]=(1/(Nk[k]+alpha*d))*(np.sum(temp,axis=0) +alpha)
     means=np.transpose(means)
     
     theta=[means,proportions]
@@ -238,7 +241,7 @@ def multi_bern_pdf(x,U):
     px=(U**x)*((1-U)**(1-x))
     return np.product((px))
 #%% PLOTS
-
+from skimage.transform import resize
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 def Plot_Figs(theta_history,cluster_label_hist,data,K,iterations,title_name,x_name,y_name):
@@ -326,6 +329,16 @@ def draw_ellipse(position, covariance, ax=None, **kwargs):
     for nsig in range(1, 4):
         ax.add_patch(Ellipse(position, nsig * width, nsig * height,
                              angle, **kwargs))
-#%%
+#%% PLOT MEANS OF MNIST        
+def Plot_Means(means):
+    
+    [Vec_len,K]=np.shape(means)
+    side_len=int(np.sqrt(Vec_len))
     
     
+    plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
+    # plt.plot(range(1,iterations+1),liklihood_history)   
+    for k in range(K):  
+        image=np.reshape(means[:,k],(side_len,side_len))
+        plt.imshow(image)
+        plt.show()
