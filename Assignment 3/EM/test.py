@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 # matplotlib inline
 import sklearn
-from sklearn.datasets import fetch_mldata
+from sklearn.datasets import fetch_openml
 
-mnist = fetch_mldata("MNIST original")
+mnist = fetch_openml("mnist_784")
 mnist.data.shape
 '''
 MNIST data is in grey scale [0, 255].

@@ -60,11 +60,19 @@ def get_MNIST(req_class):
     #from mnist import MNIST
     import numpy as np
     from sklearn.utils import shuffle   
+    from skimage.transform import resize
     
     #%
     from keras.datasets import mnist
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
-    img_rows, img_cols = 28, 28
+    
+    [number_of_images,_,_]=np.shape(x_train)
+    temp_train=np.zeros((number_of_images,8,8))
+    for i in range(number_of_images):
+        temp_train[i,:,:]=resize(x_train[i,:,:],(8,8))
+        print("Resizing image: ",i)
+    x_train=temp_train
+    img_rows, img_cols = 8, 8
     
     #%
     # req_class=[2, 3]
