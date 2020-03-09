@@ -9,11 +9,12 @@ Created on Fri Mar  6 19:27:15 2020
 import numpy as np
 import my_functions as mf
 
-dataset=[2,3,4]
+dataset=[0,1]
 sze=28 #size of the MNIST data
 data=mf.get_MNIST(dataset,sze)
+data=data
 #Cluster Size
-K=3
+K=2
 #Feature length
 [_,d]=np.shape(data)
 d-=1

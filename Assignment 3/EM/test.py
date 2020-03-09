@@ -11,6 +11,7 @@ MNIST data is in grey scale [0, 255].
 Convert it to a binary scale using a threshold of 128.
 '''
 mnist3 = (mnist.data/128).astype('int')
+#%% show image
 def show(image):
     '''
     Function to plot the MNIST data
@@ -22,6 +23,7 @@ def show(image):
     ax.xaxis.set_ticks_position('top')
     ax.yaxis.set_ticks_position('left')
     plt.show()
+#%% bernoulli
 def bernoulli(data, means):
     '''To compute the probability of x for each bernouli distribution
     data = N X D matrix
@@ -39,6 +41,7 @@ def bernoulli(data, means):
             prob[i,k] = np.prod((means[k]**data[i])*((1-means[k])**(1-data[i])))
     
     return prob
+#%% respBernoulli
 def respBernoulli(data, weights, means):
     '''To compute responsibilities, or posterior probability p(z/x)
     data = N X D matrix
@@ -66,7 +69,7 @@ def respBernoulli(data, weights, means):
     except ZeroDivisionError:
         print("Division by zero occured in reponsibility calculations!")
             
-    
+#%% bernoulliMStep
 def bernoulliMStep(data, resp):
     '''Re-estimate the parameters using the current responsibilities
     data = N X D matrix
@@ -89,6 +92,7 @@ def bernoulliMStep(data, resp):
                 break           
     
     return (Nk/N, mus)
+#%% Log Likelihood Bernoulli
 def llBernoulli(data, weights, means):
     '''To compute expectation of the loglikelihood of Mixture of Beroullie distributions
     Since computing E(LL) requires computing responsibilities, this function does a double-duty
@@ -113,6 +117,8 @@ def llBernoulli(data, weights, means):
         ll += sumK
     
     return (ll, resp)
+#%% mixOfBernoulliEM
+
 def mixOfBernoulliEM(data, init_weights, init_means, maxiters=1000, relgap=1e-4, verbose=True):
     '''EM algo fo Mixture of Bernoulli Distributions'''
     N = len(data)
@@ -124,7 +130,6 @@ def mixOfBernoulliEM(data, init_weights, init_means, maxiters=1000, relgap=1e-4,
     means = init_means[:]
     ll, resp = llBernoulli(data, weights, means)
     ll_old = ll
-    theta=[]
     for i in range(maxiters):
         if verbose and (i % 5 ==0):
             print("iteration {}:".format(i))
@@ -136,7 +141,7 @@ def mixOfBernoulliEM(data, init_weights, init_means, maxiters=1000, relgap=1e-4,
         #For 0th step, done as part of initialization
         #M Step
         weights, means = bernoulliMStep(data, resp)
-        theta.append([weights,means])
+        
         #convergence check
         ll, resp = llBernoulli(data, weights, means)
         if np.abs(ll-ll_old)<relgap:
@@ -215,10 +220,10 @@ def get_MNIST(req_class,sze):
     [train_sff,train_labs] = shuffle(train_df_data, train_df_lab)     # Shuffle the data and label (to properly train the network)
     
     return(train_sff)   
-#%%
-def experiments(digits, K, N, iters=50):
+#%% experiments
+def experiments(digits, K, iters=50):
     '''
-    Picks N random points of the selected 'digits' from MNIST data set and
+    Picks points of the selected 'digits' from MNIST data set and
     fits a model using Mixture of Bernoulli distributions.
     And returns the weights and means.
     '''
@@ -236,6 +241,6 @@ def experiments(digits, K, N, iters=50):
     initMeans = np.full((K, D), 1.0/K)
     test=mixOfBernoulliEM(expData, initWts, initMeans, maxiters=iters, relgap=1e-15)
     return test
-#%%
-finWeights, finMeans = experiments([0,1], 3, 1000)
+#%% Run Code
+finWeights, finMeans = experiments([0,1,8], 1)
 [show(finMeans[i].reshape(28,28)) for i in range(len(finMeans))]

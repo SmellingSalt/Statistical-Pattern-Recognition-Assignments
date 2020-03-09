@@ -227,19 +227,38 @@ def M_Step_Bern(data,responsibility):
     means=np.transpose(means)
     
     theta=[means,proportions]
-    Likelihood=0
+    
     log_likelihood=0
     for n in range(N):
+        Likelihood=0
         for k in range(K):
             Likelihood+=proportions[k]*multi_bern_pdf(data[n,1:],means[:,k])
         log_likelihood+=np.log(Likelihood)       
     return theta, log_likelihood
 #%% MULTI-VARIABLE BERNOULLI PDF
-def multi_bern_pdf(x,U):
-    x=np.asarray(x)
-    U=np.asarray(U)
-    px=(U**x)*((1-U)**(1-x))
-    return np.product((px))
+# def multi_bern_pdf(x,U):
+#     x=np.asarray(x)
+#     U=np.asarray(U)
+#     px=(U**x)*((1-U)**(1-x))
+#     return np.product((px))
+#%% bernoulli
+def multi_bern_pdf(data, means):
+    '''To compute the probability of x for each bernouli distribution
+    data = N X D matrix
+    means = K X D matrix
+    prob (result) = N X K matrix 
+    '''
+    N = len(data)
+    K = len(means)
+    #compute prob(x/mean)
+    # prob[i, k] for ith data point, and kth cluster/mixture distribution
+    prob = np.zeros((N, K))
+    
+    for i in range(N):
+        for k in range(K):
+            prob[i,k] = np.prod((means[k]**data[i])*((1-means[k])**(1-data[i])))
+    
+    return prob
 #%% PLOTS
 from skimage.transform import resize
 import matplotlib.pyplot as plt
