@@ -7,46 +7,10 @@ Created on Fri Mar  6 12:09:54 2020
 """
 
 #%% MODULE IMPORT
-import os
-from glob import glob
-from pandas import read_csv
+
 import numpy as np
-from scipy.stats import multivariate_normal
 from skimage.transform import resize
-class GMM(object):
-    def __init__(self,K,mu,cov,prop):
-        self.K=K
-        self.mu=mu
-        self.cov=cov
-        self.prop=prop
-        self.responsibility=[]
-        self.tes=[]
-        
-    @property
-    def theta(self):
-        return [self.mu, self.cov, self.prop]
-#%% OLD FAITHFUL DATASET
-def Get_Old_Faithful():
-    path_to_data=os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Data'))
-    csv_data=glob(os.path.join(path_to_data, "*.csv"))
-    iter=0
-    data=[]
-    for files in csv_data:
-        temp = read_csv(csv_data[iter])
-        temp=temp.values
-        data.append(temp)
-        iter=iter+10
-    # converting it into a float array
-    data=np.squeeze(np.asarray(data))
- 
-    #% Normalizing
-    data_mean=np.mean(data,axis=0)
-    data_std=np.std(data,axis=0)
-    data=data-data_mean
-    data=data/data_std
-    #Creating a data label column to say which cluster a point lies in
-    data[:,0]=0  
-    return data 
+
 #%% MNIST
 """Seema's Code 
 req_class= list of numbers to be input
@@ -54,7 +18,6 @@ eg [1,2,3]
 Function returns a matrix with the first column as all 0's and all rows containing
 the binarized numbers  requested
 """
-from skimage.transform import resize
 def get_MNIST(req_class,sze):
     
     #%
@@ -105,162 +68,8 @@ def get_MNIST(req_class,sze):
     [train_sff,train_labs] = shuffle(train_df_data, train_df_lab)     # Shuffle the data and label (to properly train the network)
     
     return(train_sff)   
-#%% SYNTHETIC DATASET
-def Get_Sythetic(K,d,N,**kwargs):   
-    means=kwargs.get('means',np.random.randint(-100,100,size=[d,K]))
-    covariance=kwargs.get('cov', get_random_cov(K,d))
-    # covariance=kwargs.get('cov', np.dstack([np.eye(d)]*K))
-    data=np.zeros((N,d+1))
-    
-    for n in range(N):
-        k=np.random.randint(0,K)
-        data[:,0]=k
-        data[n,1:]=np.random.multivariate_normal(means[:,k],covariance[:,:,k],size=1)
 
-    #% Normalizing
-    data_mean=np.mean(data[:,1:],axis=0)
-    data_std=np.std(data[:,1:],axis=0)
-    data[:,1:]=data[:,1:]-data_mean
-    data[:,1:]=data[:,1:]/data_std    
-    return data
-#%% Random covariance matricies            
-def get_random_cov(K,d):
-    from sklearn import datasets
-    cov=[]
-    for i in range(K):
-        temp=np.dstack([datasets.make_spd_matrix(d)*8])
-        cov.append(temp)
-    return np.dstack(cov)
-
-#%% E-Step GMM
-def E_Step_GMM(data,K,theta):
-
-    means=theta[0]
-    Covariance=theta[1]
-    proportions=theta[2]
-    #Computing responsibility coefficients of each point for each cluster.
-    responsibility=np.zeros((len(data),K))
-    for i in range(K):
-        itr=0    
-        for x in data[:,1:]:
-            normalising=0
-            N_xn=multivariate_normal.pdf(x,mean=means[:,i], cov=Covariance[:,:,i])
-            responsibility[itr][i]=proportions[i]*N_xn
-            for j in range(K):
-                normalising+=proportions[j]*multivariate_normal.pdf(x,mean=means[:,j], cov=Covariance[:,:,j])
-            responsibility[itr][i]=responsibility[itr][i]/normalising
-            itr+=1
-
-    return responsibility
-#%% E-Step Bernoulli
-def E_Step_Bern(data,K,theta):
-    U=theta[0]
-    proportions=theta[1]
-    #Computing responsibility coefficients of each point for each cluster.
-    responsibility=np.zeros((len(data),K))
-    alpha=0
-    for k in range(K):
-        itr=0
-        for x in data[:,1:]:
-            normalising=0
-            P_xn=multi_bern_pdf(x,U[:,k])
-            responsibility[itr][k]=proportions[k]*P_xn+alpha
-            for j in range(K):
-                normalising+=proportions[j]*multi_bern_pdf(x,U[:,j])+alpha*K
-            responsibility[itr][k]=responsibility[itr][k]/normalising
-            itr+=1
-    return responsibility
-#%% M-STEP GMM
-def M_Step_GMM(data,responsibility):
-    [N,K]=np.shape(responsibility) #N is number of data points
-    [_,d]=np.shape(data[:,1:]) #Data dimension
-    
-    #Compute Proportions
-    Nk=np.sum(responsibility,axis=0)
-    proportions=Nk/N
-        
-    #Compute Means
-    means=np.zeros((K,d))        
-    for k in range(K):
-        temp1=data[:,1:]
-        temp2=responsibility[:,k]
-        temp=temp1*temp2[:,None] #multiplying a vector with multiple columns
-        means[k]=(1/Nk[k])*np.sum(temp,axis=0)  
-    means=np.transpose(means)
-        
-    #Compute Covariance
-    Covariance=np.zeros((d,d,K))        
-    for k in range(K):
-        for n in range(N):
-            temp1=data[n,1:]-means[:,k]
-            temp2=np.outer(temp1,np.transpose(temp1))
-            temp=responsibility[n,k]*temp2
-            Covariance[:,:,k]+=temp
-        Covariance[:,:,k]=(1/Nk[k])*Covariance[:,:,k]
-    
-    theta=[means,Covariance,proportions]
-    Likelihood=0
-    log_likelihood=0
-    for n in range(N):
-        for k in range(K):
-            Likelihood+=proportions[k]*multivariate_normal.pdf(data[n,1:],mean=means[:,k], cov=Covariance[:,:,k])
-        log_likelihood+=np.log(Likelihood)
-            
-    return theta, log_likelihood
-
-#%% M-STEP BERNOULLI
-def M_Step_Bern(data,responsibility):
-    [N,K]=np.shape(responsibility) #N is number of data points
-    [_,d]=np.shape(data[:,1:]) #Data dimension
-    alpha=0
-    #Compute Proportions
-    Nk=np.sum(responsibility,axis=0)
-    proportions=(Nk+alpha)/(N+alpha*K)
-        
-    #Compute Means
-    means=np.zeros((K,d))        
-    for k in range(K):
-        temp1=data[:,1:]
-        temp2=responsibility[:,k]
-        temp=temp1*temp2[:,None] #multiplying a vector with multiple columns
-        means[k]=(1/(Nk[k]+alpha*d))*(np.sum(temp,axis=0) +alpha)
-    means=np.transpose(means)
-    
-    theta=[means,proportions]
-    
-    log_likelihood=0
-    for n in range(N):
-        Likelihood=0
-        for k in range(K):
-            Likelihood+=proportions[k]*multi_bern_pdf(data[n,1:],means[:,k])
-        log_likelihood+=np.log(Likelihood)       
-    return theta, log_likelihood
-#%% MULTI-VARIABLE BERNOULLI PDF
-# def multi_bern_pdf(x,U):
-#     x=np.asarray(x)
-#     U=np.asarray(U)
-#     px=(U**x)*((1-U)**(1-x))
-#     return np.product((px))
-#%% bernoulli
-def multi_bern_pdf(data, means):
-    '''To compute the probability of x for each bernouli distribution
-    data = N X D matrix
-    means = K X D matrix
-    prob (result) = N X K matrix 
-    '''
-    N = len(data)
-    K = len(means)
-    #compute prob(x/mean)
-    # prob[i, k] for ith data point, and kth cluster/mixture distribution
-    prob = np.zeros((N, K))
-    
-    for i in range(N):
-        for k in range(K):
-            prob[i,k] = np.prod((means[k]**data[i])*((1-means[k])**(1-data[i])))
-    
-    return prob
 #%% PLOTS
-from skimage.transform import resize
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 def Plot_Figs(theta_history,cluster_label_hist,data,K,iterations,title_name,x_name,y_name):
@@ -348,16 +157,155 @@ def draw_ellipse(position, covariance, ax=None, **kwargs):
     for nsig in range(1, 4):
         ax.add_patch(Ellipse(position, nsig * width, nsig * height,
                              angle, **kwargs))
-#%% PLOT MEANS OF MNIST        
-def Plot_Means(means):
-    
+        
+#%% RESTRICTED BOLTZMANN MACINE
+from time import time
+def rbm(dataset, num_hidden, learn_rate, epochs, k,batchsize):
+   num_visible = dataset.shape[1]
+   num_examples = dataset.shape[0]
+   print("Training RBM with", num_visible, "visible units,",
+          num_hidden, "hidden units,", num_examples, "examples and",
+          epochs, "epochs...")
+   start_time = time()
+   batches = num_examples // batchsize
+   
+   w = 0.1 * np.random.randn(num_visible, num_hidden)
+   a = np.zeros((1, num_visible))
+   b = -4.0 * np.ones((1, num_hidden))
+
+   w_inc = np.zeros((num_visible, num_hidden))
+   a_inc = np.zeros((1, num_visible))
+   b_inc = np.zeros((1, num_hidden))
+
+   for epoch in range(epochs):
+      error = 0
+      for batch in range(batches):
+         #### --- Positive phase of contrastive divergence --- ####
+
+         # get next batch of data
+         v0 = dataset[int(batch*batchsize):int((batch+1)*batchsize)]
+         #GIBBS SAMPLING
+         for i in range(k) :
+         	prob_h0 = logistic(v0, w, b)
+         	# sample the states of hidden units based on prob_h0
+         	h0 = prob_h0 > np.random.rand(batchsize, num_hidden)
+         	# reconstruct the data by sampling the visible states from hidden states
+         	v1 = logistic(h0, w.T, a)
+         	# sample hidden states from visible states
+         	prob_h1 = logistic(v1, w, b)
+         	#print("Completed one round of k")
+
+         # positive phase products
+         vh0 = np.dot(v0.T, prob_h0)
+         
+         # activation values needed to update biases
+         poshidact = np.sum(prob_h0, axis=0)
+         posvisact = np.sum(v0, axis=0)
+
+         #### --- Negative phase of contrastive divergence --- ####
+         #negative phase products
+         vh1 = np.dot(v1.T, prob_h1)
+
+         # activation values needed to update biases
+         neghidact = np.sum(prob_h1, axis=0)
+         negvisact = np.sum(v1, axis=0)
+
+         #### --- Updating the weights --- ####
+
+         # set momentum as per Hinton's practical guide to training RBMs
+         m = 0.5 if epoch > 5 else 0.9
+
+         # update the weights
+         w_inc = w_inc * m + (learn_rate/batchsize) * (vh0 - vh1)
+         a_inc = a_inc * m + (learn_rate/batchsize) * (posvisact - negvisact)
+         b_inc = b_inc * m + (learn_rate/batchsize) * (poshidact - neghidact)
+
+         a += a_inc
+         b += b_inc
+         w += w_inc
+
+         error += np.sum((v0 - v1) ** 2)
+      print("Epoch %s completed. Reconstruction error is %0.2f. Time elapsed (sec): %0.2f. lr= %0.7f"
+            % (epoch + 1, error/num_examples, time() - start_time, learn_rate))
+
+   print ("Training completed.\nTotal training time (sec): %0.2f \n" % (time() - start_time))
+   return w, a, b
+
+#%% SIGMOID FUNCTION
+def logistic(x,w,b):
+   xw = np.dot(x, w)
+   return 1.0 / (1 + np.exp(- xw - b))
+
+#%% ONE STEP OF GIBBS SAMPLING TO RECONSTRUCT VISIBLE LAYER GIVEN HIDDEN LAYER
+def reconstruct(v0, w, a, b):
+   num_hidden = w.shape[1]
+   prob_h0 = logistic(v0, w, b)
+   h0 = prob_h0 > np.random.rand(1, num_hidden)
+   return logistic(h0, w.T, a)
+
+#%% SAMPLE THE OTPUT OF A HIDDEN LAYER
+def sample_hidden(v0,w,b):
+   return logistic(v0, w, b)
+
+#%% PLOT IMAGES
+def Plot_Means(means):    
     [Vec_len,K]=np.shape(means)
-    side_len=int(np.sqrt(Vec_len))
+    side_len=int(np.sqrt(Vec_len))        
     
-    
-    plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
     # plt.plot(range(1,iterations+1),liklihood_history)   
     for k in range(K):  
+        plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
         image=np.reshape(means[:,k],(side_len,side_len))
         plt.imshow(image)
         plt.show()
+        
+#%% SUBPLOTS   
+def MNIST_subplot1(Collect_Images,title_name):
+    OG=Collect_Images[0].T
+    Recon=Collect_Images[1].T
+    hidden=Collect_Images[2].T
+    how_many_samples=OG.shape[1]
+    data_len=int(np.sqrt(OG.shape[0]))
+    hidden_len=int(np.sqrt(hidden.shape[0]))
+    
+    fig, axs = plt.subplots(how_many_samples,3, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=False,sharey=False)
+    fig.subplots_adjust(hspace = .5, wspace=.1)
+    axs = axs.ravel()
+    itr=0
+        
+    for i in range(how_many_samples):
+        axs[itr].set_title("Input Image",fontsize=15)
+        axs[itr].imshow(OG[:,i].reshape(data_len,data_len))
+        axs[itr].axis('off')
+        itr+=1
+        
+        axs[itr].set_title("Reconstructed Image",fontsize=15)
+        axs[itr].imshow(Recon[:,i].reshape(data_len,data_len))
+        axs[itr].axis('off')
+        itr+=1
+        
+        axs[itr].set_title("Hidden layer activation",fontsize=15)
+        axs[itr].imshow(hidden[:,i].reshape(hidden_len,hidden_len))
+        axs[itr].axis('off')
+        itr+=1
+        
+    fig.text(0.5, 0.9, title_name, ha='center',fontsize=21)    
+    print("Done")   
+#%%
+def MNIST_subplot2(Images,title_name):
+    how_many_plots=Images.shape[0]
+    data_len=int(np.sqrt(Images.shape[1]))
+    
+    subplot_len=int(np.sqrt(how_many_plots))
+    
+    fig, axs = plt.subplots(subplot_len,subplot_len, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=False,sharey=False)
+    fig.subplots_adjust(hspace = .05, wspace=.01)
+    axs = axs.ravel()
+        
+    for i in range(how_many_plots):
+        # axs[itr].set_title("Input Image",fontsize=15)
+        axs[i].imshow(Images[i,:].reshape(data_len,data_len))
+        axs[i].axis('off')
+        
+    fig.text(0.5, 0.89, title_name, ha='center',fontsize=21)    
+    print("Done")   
