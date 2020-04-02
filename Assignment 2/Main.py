@@ -45,4 +45,5 @@ Plot_Title2="Visualising weights for data trained on and trained on "+str(datase
 mf.MNIST_subplot2(w.T,Plot_Title2)
 #%%
 pick_random_images=np.random.randint(0,test_data.shape[0],100)
-mf.MNIST_subplot2(test_data[pick_random_images,:],"The MNIST Data-Set")
+mf.MNIST_subplot2(test_data[pick_random_images,:],"The Quantized MNIST Data-Set")
+
