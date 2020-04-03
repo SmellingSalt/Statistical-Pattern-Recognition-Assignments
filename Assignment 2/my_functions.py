@@ -159,6 +159,7 @@ def draw_ellipse(position, covariance, ax=None, **kwargs):
                              angle, **kwargs))
         
 #%% RESTRICTED BOLTZMANN MACINE
+#Referrerence: https://github.com/NiteshMethani/Deep-Learning-CS7015/tree/master/RBM
 from time import time
 def rbm(dataset, num_hidden, learn_rate, epochs, k,batchsize):
    num_visible = dataset.shape[1]
@@ -232,11 +233,13 @@ def rbm(dataset, num_hidden, learn_rate, epochs, k,batchsize):
    return w, a, b
 
 #%% SIGMOID FUNCTION
+#Referrerence: https://github.com/NiteshMethani/Deep-Learning-CS7015/tree/master/RBM
 def logistic(x,w,b):
    xw = np.dot(x, w)
    return 1.0 / (1 + np.exp(- xw - b))
 
 #%% ONE STEP OF GIBBS SAMPLING TO RECONSTRUCT VISIBLE LAYER GIVEN HIDDEN LAYER
+#Referrerence: https://github.com/NiteshMethani/Deep-Learning-CS7015/tree/master/RBM
 def reconstruct(v0, w, a, b):
    num_hidden = w.shape[1]
    prob_h0 = logistic(v0, w, b)
@@ -244,6 +247,7 @@ def reconstruct(v0, w, a, b):
    return logistic(h0, w.T, a)
 
 #%% SAMPLE THE OTPUT OF A HIDDEN LAYER
+#Referrerence: https://github.com/NiteshMethani/Deep-Learning-CS7015/tree/master/RBM
 def sample_hidden(v0,w,b):
    return logistic(v0, w, b)
 
