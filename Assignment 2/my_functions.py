@@ -157,7 +157,76 @@ def draw_ellipse(position, covariance, ax=None, **kwargs):
     for nsig in range(1, 4):
         ax.add_patch(Ellipse(position, nsig * width, nsig * height,
                              angle, **kwargs))
+#%% PLOT IMAGES
+def Plot_Means(means):    
+    [Vec_len,K]=np.shape(means)
+    side_len=int(np.sqrt(Vec_len))        
+    
+    # plt.plot(range(1,iterations+1),liklihood_history)   
+    for k in range(K):  
+        plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
+        image=np.reshape(means[:,k],(side_len,side_len))
+        plt.imshow(image)
+        plt.show()
         
+#%% SUBPLOT OF INPUT IMAGES AND PREDICTIONS   
+def MNIST_subplot1(Collect_Images,title_name):
+    OG=Collect_Images[0].T
+    Recon=Collect_Images[1].T
+    hidden=Collect_Images[2].T
+    how_many_samples=OG.shape[1]
+    data_len=int(np.sqrt(OG.shape[0]))
+    hidden_len=int(np.sqrt(hidden.shape[0]))
+    
+    fig, axs = plt.subplots(how_many_samples,3, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=False,sharey=False)
+    fig.subplots_adjust(hspace = .5, wspace=.1)
+    axs = axs.ravel()
+    itr=0
+        
+    for i in range(how_many_samples):
+        axs[itr].set_title("Input Image",fontsize=15)
+        axs[itr].imshow(OG[:,i].reshape(data_len,data_len))
+        axs[itr].axis('off')
+        itr+=1
+        
+        axs[itr].set_title("Reconstructed Image",fontsize=15)
+        axs[itr].imshow(Recon[:,i].reshape(data_len,data_len))
+        axs[itr].axis('off')
+        itr+=1
+        
+        axs[itr].set_title("Hidden layer activation",fontsize=15)
+        axs[itr].imshow(hidden[:,i].reshape(hidden_len,hidden_len))
+        axs[itr].axis('off')
+        itr+=1
+        
+    fig.text(0.5, 0.9, title_name, ha='center',fontsize=21)    
+    print("Done")   
+#%% SHOW SAMPLE OF DATASET IMAGES
+def MNIST_subplot2(Images,title_name,square_or_not):
+    how_many_plots=Images.shape[0]
+    data_len=int(np.sqrt(Images.shape[1]))
+    
+    subplot_len=int(np.sqrt(how_many_plots))
+    if square_or_not:
+        fig, axs = plt.subplots(subplot_len,subplot_len, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=False,sharey=False)
+        fig.subplots_adjust(hspace = .05, wspace=.01)
+    else:
+        fig, axs = plt.subplots(how_many_plots,1, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=False,sharey=False)    
+        fig.subplots_adjust(hspace = .2)
+    axs = axs.ravel()
+        
+    for i in range(how_many_plots):
+        # axs[itr].set_title("Input Image",fontsize=15)
+        axs[i].imshow(Images[i,:].reshape(data_len,data_len))
+        axs[i].axis('off')
+        if square_or_not:
+            continue
+        else:
+            axs[i].set_title("Class "+str(i))
+            
+    fig.text(0.5, 0.9, title_name, ha='center',fontsize=21)    
+    print("Done dataset samples")   
+    
 #%% RESTRICTED BOLTZMANN MACINE
 #Referrerence: https://github.com/NiteshMethani/Deep-Learning-CS7015/tree/master/RBM
 from time import time
@@ -251,65 +320,97 @@ def reconstruct(v0, w, a, b):
 def sample_hidden(v0,w,b):
    return logistic(v0, w, b)
 
-#%% PLOT IMAGES
-def Plot_Means(means):    
-    [Vec_len,K]=np.shape(means)
-    side_len=int(np.sqrt(Vec_len))        
+#%% FASHION MNIST DATASET
+import tensorflow as tf
+def get_fashion_MNIST(classes_to_be_picked):
     
-    # plt.plot(range(1,iterations+1),liklihood_history)   
-    for k in range(K):  
-        plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
-        image=np.reshape(means[:,k],(side_len,side_len))
-        plt.imshow(image)
-        plt.show()
-        
-#%% SUBPLOTS   
-def MNIST_subplot1(Collect_Images,title_name):
-    OG=Collect_Images[0].T
-    Recon=Collect_Images[1].T
-    hidden=Collect_Images[2].T
-    how_many_samples=OG.shape[1]
-    data_len=int(np.sqrt(OG.shape[0]))
-    hidden_len=int(np.sqrt(hidden.shape[0]))
     
-    fig, axs = plt.subplots(how_many_samples,3, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=False,sharey=False)
-    fig.subplots_adjust(hspace = .5, wspace=.1)
-    axs = axs.ravel()
-    itr=0
-        
-    for i in range(how_many_samples):
-        axs[itr].set_title("Input Image",fontsize=15)
-        axs[itr].imshow(OG[:,i].reshape(data_len,data_len))
-        axs[itr].axis('off')
-        itr+=1
-        
-        axs[itr].set_title("Reconstructed Image",fontsize=15)
-        axs[itr].imshow(Recon[:,i].reshape(data_len,data_len))
-        axs[itr].axis('off')
-        itr+=1
-        
-        axs[itr].set_title("Hidden layer activation",fontsize=15)
-        axs[itr].imshow(hidden[:,i].reshape(hidden_len,hidden_len))
-        axs[itr].axis('off')
-        itr+=1
-        
-    fig.text(0.5, 0.9, title_name, ha='center',fontsize=21)    
-    print("Done")   
-#%%
-def MNIST_subplot2(Images,title_name):
-    how_many_plots=Images.shape[0]
-    data_len=int(np.sqrt(Images.shape[1]))
+    """ This function returns the MNIST dataset as numpy arrays, split into 
+    60,000 training samples and 20,000 testing samples"""
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
+    for_legend_plot=[]
     
-    subplot_len=int(np.sqrt(how_many_plots))
+    #If all the classes need to be picked
+    if classes_to_be_picked=="all":
+        number_of_classes=range(len(np.unique(y_train)))
+        classes_to_be_picked=number_of_classes
+        
+    [number_of_train_images,length,bred]=np.shape(x_train)
+    [number_of_test_images,_,_]=np.shape(x_test)
+    x_train = x_train.reshape(number_of_train_images, length, bred, 1) # last 1 is because it usually accepts RGB images and MNIST is greyscale
+    x_test = x_test.reshape(number_of_test_images, length, bred, 1)
+    input_shape = (length,bred, 1)
+    # Making sure that the values are float so that we can get decimal points after division
+    x_train = x_train.astype('float32')
+    x_test = x_test.astype('float32')
+    # Normalizing the RGB codes by dividing it to the max RGB value.
+    x_train /= 255
+    x_test /= 255
     
-    fig, axs = plt.subplots(subplot_len,subplot_len, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=False,sharey=False)
-    fig.subplots_adjust(hspace = .05, wspace=.01)
-    axs = axs.ravel()
+    #Selecting the classes
+    x=np.empty(np.shape(x_train), dtype = np.float32)
+    y=np.empty(np.shape(y_train), dtype = np.float32)
+    how_many=np.empty(len(y), dtype = np.float32)
+    fill_till=0
+    iteration=0
+    x1=[]
+    y1=[]
+    for i in classes_to_be_picked:
+        tempx=x_train[y_train==i]
+        temptestx=x_test[y_test==i] 
+        tempx=np.concatenate((tempx, temptestx),axis=0)
+        x1.append(tempx)
         
-    for i in range(how_many_plots):
-        # axs[itr].set_title("Input Image",fontsize=15)
-        axs[i].imshow(Images[i,:].reshape(data_len,data_len))
-        axs[i].axis('off')
+        tempy=y_train[y_train==i]
+        temptesty=y_test[y_test==i]
+        tempy=np.concatenate((tempy, temptesty),axis=0)        
+        y1.append(tempy)        
         
-    fig.text(0.5, 0.89, title_name, ha='center',fontsize=21)    
-    print("Done")   
+        fill_till=fill_till+len(tempy)
+        how_many[iteration]=len(tempy)
+        iteration=iteration+1
+        
+        for_legend_plot.append(np.squeeze(tempx[1,:,:]))
+    
+    for_legend_plot=np.asarray(for_legend_plot)
+    x2=np.vstack(x1)
+    y2=np.concatenate(y1)
+    x=x[:fill_till]
+    y=y[:fill_till]
+    #SHUFFLING THE DATA AND SPLITTING IT INTO TRAIN/TEST    
+    num_training_samples=int(np.floor(0.8*len(y)))
+    [x_train,y_train]=My_Shuffle(x2,y2,num_training_samples)
+    
+    num_test_samples=len(y)-num_training_samples
+    [x_test,y_test]=My_Shuffle(x2,y2,num_test_samples)
+    
+    for_legend_plot=np.reshape(for_legend_plot,(len(classes_to_be_picked),length*bred))
+    x_train=np.reshape(x_train,(x_train.shape[0],length*bred))
+    x_test=np.reshape(x_test,(x_test.shape[0],length*bred))
+    
+    x_train=np.squeeze(x_train)
+    x_test=np.squeeze(x_test)
+    
+    # #Adding labels to the first column
+    # ztrain=np.expand_dims(y_train,axis=1)
+    # x_train=np.append(ztrain,x_train,axis=1)
+    
+    # ztest=np.expand_dims(y_test,axis=1)
+    # x_test=np.append(ztest,x_test,axis=1)
+    
+    return x_train,x_test,y_train,y_test,for_legend_plot,input_shape
+#%% SHUFFLE DATASET
+import random
+def My_Shuffle(x,y,how_many_to_pick):
+    length=len(y)
+    iterate=list(range(0,length))
+    random.shuffle(iterate)
+    tempx=x
+    tempy=y
+    a=0
+    for i in iterate:
+        tempx[a]=x[i]
+        tempy[a]=y[i]
+        a=a+1
+    return tempx[:how_many_to_pick], tempy[:how_many_to_pick]
+
