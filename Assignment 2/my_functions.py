@@ -166,7 +166,7 @@ def Plot_Means(means):
     for k in range(K):  
         plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
         image=np.reshape(means[:,k],(side_len,side_len))
-        plt.imshow(image)
+        plt.imshow(image,cmap='gray')
         plt.show()
         
 #%% SUBPLOT OF INPUT IMAGES AND PREDICTIONS   
@@ -185,17 +185,17 @@ def MNIST_subplot1(Collect_Images,title_name):
         
     for i in range(how_many_samples):
         axs[itr].set_title("Input Image",fontsize=15)
-        axs[itr].imshow(OG[:,i].reshape(data_len,data_len))
+        axs[itr].imshow(OG[:,i].reshape(data_len,data_len),cmap='gray')
         axs[itr].axis('off')
         itr+=1
         
         axs[itr].set_title("Reconstructed Image",fontsize=15)
-        axs[itr].imshow(Recon[:,i].reshape(data_len,data_len))
+        axs[itr].imshow(Recon[:,i].reshape(data_len,data_len),cmap='gray')
         axs[itr].axis('off')
         itr+=1
         
         axs[itr].set_title("Hidden layer activation",fontsize=15)
-        axs[itr].imshow(hidden[:,i].reshape(hidden_len,hidden_len))
+        axs[itr].imshow(hidden[:,i].reshape(hidden_len,hidden_len),cmap='gray')
         axs[itr].axis('off')
         itr+=1
         
@@ -217,7 +217,7 @@ def MNIST_subplot2(Images,title_name,square_or_not):
         
     for i in range(how_many_plots):
         # axs[itr].set_title("Input Image",fontsize=15)
-        axs[i].imshow(Images[i,:].reshape(data_len,data_len))
+        axs[i].imshow(Images[i,:].reshape(data_len,data_len),cmap='gray')
         axs[i].axis('off')
         if square_or_not:
             continue
@@ -226,11 +226,93 @@ def MNIST_subplot2(Images,title_name,square_or_not):
             
     fig.text(0.5, 0.9, title_name, ha='center',fontsize=21)    
     print("Done dataset samples")   
+
+#%% SYNTHETIC DATASET
+def get_synthetic(N):
+    x=np.random.rand(N,2)
+    y=np.asarray(x[:,0]>x[:,1],dtype='float32')
+    y=np.expand_dims(y,axis=1)
+    y=np.hstack((y,y))
+    # y[y[:,0]==1,1]=0
+    return np.hstack((y,x))
+#%%
+import random
+def Get_Sythetic_Gauss(K,d,N,**kwargs): 
+    """ k= number of clusters.
+        d= number of dimensions
+        N number of points
+        kwargs=Set your own means,covariance matrices"""
     
+    means=kwargs.get('means',np.random.randint(-100,100,size=[d,K]))
+    covariance=kwargs.get('cov', get_random_cov(K,d))
+    # covariance=kwargs.get('cov', np.dstack([np.eye(d)]*K))
+    data=np.zeros((N,d+1))
+    
+    for n in range(N):
+        k=np.random.randint(0,K)
+        data[:,0]=k
+        data[n,1:]=np.random.multivariate_normal(means[:,k],covariance[:,:,k],size=1)
+
+    #% Normalizing
+    data_mean=np.mean(data[:,1:],axis=0)
+    data_std=np.std(data[:,1:],axis=0)
+    data[:,1:]=data[:,1:]-data_mean
+    data[:,1:]=data[:,1:]/data_std    
+    return data[:,1:],data[:,0]
+#%% Random covariance matricies            
+def get_random_cov(K,d):
+    from sklearn import datasets
+    cov=[]
+    for i in range(K):
+        temp=np.dstack([datasets.make_spd_matrix(d)*8])
+        cov.append(temp)
+    return np.dstack(cov)
+
+#%% AUDIO
+import os
+from glob import glob
+import librosa
+#%%
+def train_song():
+    """This functions yeilds each wav file in the dataset
+    if sample_rate_only==True, then it only gives a scalar sample rate"""
+    
+    #Go to the path where the dataset is stored
+    wav_data_path=os.path.relpath(os.path.join('MusicDatasets/Beethoven/MP3FILES'))
+    wav_data_files_list=glob(os.path.join(wav_data_path, "*.wav"))
+    #Get the audio in terms of frames of length 1000
+
+    for wav_file in wav_data_files_list:    
+        data, sampling_rate = librosa.load(wav_file)
+        frame_size=sampling_rate*5     # roughtly 45ms frames at 22kHz sampling rate
+        hop_length=int(frame_size/2)                  
+        frames = librosa.util.frame(data, frame_length=frame_size, hop_length=hop_length)
+        yield frames.T
+
+#%% SEED A SONG
+def seed_a_song(sample_length):
+    """This functions returns a portion of music from the dataset to seed into
+    reconstructing whatever the RBM has learned"""
+    
+    #Go to the path where the dataset is stored
+    wav_data_path=os.path.relpath(os.path.join('MusicDatasets/Beethoven/MP3FILES'))
+    wav_data_files_list=glob(os.path.join(wav_data_path, "*.wav"))
+    #Get the audio in terms of frames of length 1000
+    how_many_files=len(wav_data_files_list)
+    file_index=np.random.randint(0,high=how_many_files+1)
+    wav_file=wav_data_files_list[file_index]
+    
+    data, sampling_rate = librosa.load(wav_file)
+    
+    start_point=np.random.randint(0,(len(data)-sample_length))
+    end_point=start_point+sample_length    
+    return data[start_point:end_point]
+        
+        
 #%% RESTRICTED BOLTZMANN MACINE
 #Referrerence: https://github.com/NiteshMethani/Deep-Learning-CS7015/tree/master/RBM
 from time import time
-def rbm(dataset, num_hidden, learn_rate, epochs, k,batchsize):
+def rbm(dataset, num_hidden, learn_rate, epochs, k,batchsize,**kwargs):
    num_visible = dataset.shape[1]
    num_examples = dataset.shape[0]
    print("Training RBM with", num_visible, "visible units,",
@@ -239,9 +321,10 @@ def rbm(dataset, num_hidden, learn_rate, epochs, k,batchsize):
    start_time = time()
    batches = num_examples // batchsize
    
-   w = 0.1 * np.random.randn(num_visible, num_hidden)
-   a = np.zeros((1, num_visible))
-   b = -4.0 * np.ones((1, num_hidden))
+   w=kwargs.get('w',0.1 * np.random.randn(num_visible, num_hidden))
+   a=kwargs.get('a',np.zeros((1, num_visible)))
+   b=kwargs.get('b',-4.0 * np.ones((1, num_hidden)))
+
 
    w_inc = np.zeros((num_visible, num_hidden))
    a_inc = np.zeros((1, num_visible))

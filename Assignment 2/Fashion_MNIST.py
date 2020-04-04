@@ -10,7 +10,7 @@ import numpy as np
 import my_functions as mf
 #%% MAIN CODE
 
-# dataset=[4,3,8]
+dataset=[3,4,8]
 dataset="all"
 test_dataset="all"
 #%%
@@ -21,8 +21,8 @@ print("Got dataset")
 
 num_hidden_units=100
 learn_rate=0.01
-epochs=20
-k=2
+epochs=10
+k=1
 batchsize=30
 #%% RBM
 [w,a,b]=mf.rbm(train_data, num_hidden_units, learn_rate, epochs, k,batchsize)
@@ -43,8 +43,8 @@ Plot_Title2="Visualising weights for data trained on and trained on "+str(datase
 mf.MNIST_subplot2(w.T,Plot_Title2,square_or_not=True)
 #%%
 pick_random_images=np.random.randint(0,test_data.shape[0],100)
-# mf.MNIST_subplot2(test_data[pick_random_images,:],"The Fashion Data-Set",square_or_not=True)
+mf.MNIST_subplot2(test_data[pick_random_images,:],"The Fashion Data-Set",square_or_not=True)
 
-# mf.MNIST_subplot2(for_legend_plot,"Legend for the Fashion Data-Set",square_or_not=False)
+mf.MNIST_subplot2(for_legend_plot,"Legend for the Fashion Data-Set",square_or_not=False)
 
 
