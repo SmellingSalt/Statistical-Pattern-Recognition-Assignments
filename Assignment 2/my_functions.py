@@ -299,7 +299,7 @@ def seed_a_song(sample_length):
     wav_data_files_list=glob(os.path.join(wav_data_path, "*.wav"))
     #Get the audio in terms of frames of length 1000
     how_many_files=len(wav_data_files_list)
-    file_index=np.random.randint(0,high=how_many_files+1)
+    file_index=np.random.randint(0,high=how_many_files)
     wav_file=wav_data_files_list[file_index]
     
     data, sampling_rate = librosa.load(wav_file)

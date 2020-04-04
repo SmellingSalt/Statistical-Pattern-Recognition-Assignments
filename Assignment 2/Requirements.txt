@@ -1,0 +1,38 @@
+1) Get Tensorflow 
+
+2) Audio Handling. (MIDI FILES TO MP3 or WAV)
+#midi 
+#in command line
+    sudo apt-get install timidity
+
+#To play midi on your system 
+    timidity 0AuraLee.mid
+
+#to convert to mp3(https://ubuntuforums.org/showthread.php?t=1790563)
+install lame
+    sudo apt install lame
+then convert to mp3 
+    timidity 0AuraLee.mid -Ow -o - | lame - -b 64 0AuraLee2.mp3
+to convert to WAV
+    timidity 0AuraLee.mid -Ow 0AuraLee2.mp3
+
+#TO READ WAV FILES OR MP3 FILES
+You need this in your system
+
+.) ffmpeg
+Refer to this
+https://github.com/librosa/librosa/issues/945#issuecomment-520478090
+    conda install -c conda-forge ffmpeg
+    
+.) librosa
+pip install librosa
+
+    
+    
+3) #TO GET AUDIO TO PLAY
+in your system, install this
+    sudo apt-get install libportaudio2
+
+then
+    pip install sounddevice
+
