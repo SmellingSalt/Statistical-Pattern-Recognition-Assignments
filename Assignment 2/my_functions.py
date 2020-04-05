@@ -267,48 +267,7 @@ def get_random_cov(K,d):
         temp=np.dstack([datasets.make_spd_matrix(d)*8])
         cov.append(temp)
     return np.dstack(cov)
-
-#%% AUDIO
-import os
-from glob import glob
-import librosa
-#%%
-def train_song():
-    """This functions yeilds each wav file in the dataset
-    if sample_rate_only==True, then it only gives a scalar sample rate"""
     
-    #Go to the path where the dataset is stored
-    wav_data_path=os.path.relpath(os.path.join('MusicDatasets/Beethoven/MP3FILES'))
-    wav_data_files_list=glob(os.path.join(wav_data_path, "*.wav"))
-    #Get the audio in terms of frames of length 1000
-
-    for wav_file in wav_data_files_list:    
-        data, sampling_rate = librosa.load(wav_file)
-        frame_size=sampling_rate*5     # roughtly 45ms frames at 22kHz sampling rate
-        hop_length=int(frame_size/2)                  
-        frames = librosa.util.frame(data, frame_length=frame_size, hop_length=hop_length)
-        yield frames.T
-
-#%% SEED A SONG
-def seed_a_song(sample_length):
-    """This functions returns a portion of music from the dataset to seed into
-    reconstructing whatever the RBM has learned"""
-    
-    #Go to the path where the dataset is stored
-    wav_data_path=os.path.relpath(os.path.join('MusicDatasets/Beethoven/MP3FILES'))
-    wav_data_files_list=glob(os.path.join(wav_data_path, "*.wav"))
-    #Get the audio in terms of frames of length 1000
-    how_many_files=len(wav_data_files_list)
-    file_index=np.random.randint(0,high=how_many_files)
-    wav_file=wav_data_files_list[file_index]
-    
-    data, sampling_rate = librosa.load(wav_file)
-    
-    start_point=np.random.randint(0,(len(data)-sample_length))
-    end_point=start_point+sample_length    
-    return data[start_point:end_point]
-        
-        
 #%% RESTRICTED BOLTZMANN MACINE
 #Referrerence: https://github.com/NiteshMethani/Deep-Learning-CS7015/tree/master/RBM
 from time import time
