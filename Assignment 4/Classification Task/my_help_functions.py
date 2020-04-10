@@ -13,18 +13,21 @@ from pandas import read_csv
 import numpy as np
 from scipy.stats import multivariate_normal
 from skimage.transform import resize
-class GMM(object):
-    def __init__(self,K,mu,cov,prop):
-        self.K=K
-        self.mu=mu
-        self.cov=cov
-        self.prop=prop
-        self.responsibility=[]
-        self.tes=[]
-        
-    @property
-    def theta(self):
-        return [self.mu, self.cov, self.prop]
+#%% POCKET PERCEPTRON
+from sklearn.linear_model import Perceptron
+import copy 
+def pocket_percep(x,y, max_iteration):
+    best_error=[10.0]
+    itr=0
+    for i in range(max_iteration):
+        clf = Perceptron(tol=1e-3) #Create perceptron Object
+        clf.fit(x, y) #Train it 
+        error = (1-clf.score(x, y))#check error 
+        if error<best_error[itr]:
+            best_clf = copy.deepcopy(clf) #Copy the model object
+            best_error.append(error)
+            itr+=1            
+    return best_clf,best_error,clf
 #%% OLD FAITHFUL DATASET
 def Get_Old_Faithful():
     path_to_data=os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Data'))
@@ -115,7 +118,7 @@ def Get_Sythetic(K,d,N,**kwargs):
     for n in range(N):
         pick_distribution=np.random.multinomial(1,priors,size=1)#one hot vector indicating which distribution to use
         k=np.where(pick_distribution==1)[1][0] #Index of the 1 in the one-hot vector
-        data[:,0]=k
+        data[n,0]=k
         data[n,1:]=np.random.multivariate_normal(means[:,k],covariance[:,:,k],size=1)
 
     #% Normalizing
@@ -123,7 +126,8 @@ def Get_Sythetic(K,d,N,**kwargs):
     data_std=np.std(data[:,1:],axis=0)
     data[:,1:]=data[:,1:]-data_mean
     data[:,1:]=data[:,1:]/data_std    
-    return data
+    label=data[:,0]
+    return label, data[:,1:]
 #%% Random covariance matricies            
 def get_random_cov(K,d):
     from sklearn import datasets
