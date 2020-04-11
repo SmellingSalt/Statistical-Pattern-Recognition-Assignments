@@ -7,49 +7,60 @@ Created on Fri Mar  6 12:09:54 2020
 """
 
 #%% MODULE IMPORT
-import os
-from glob import glob
-from pandas import read_csv
 import numpy as np
 from scipy.stats import multivariate_normal
 from skimage.transform import resize
 #%% POCKET PERCEPTRON
-from sklearn.linear_model import Perceptron
-import copy 
-def pocket_percep(x,y, max_iteration):
-    best_error=[10.0]
-    itr=0
-    for i in range(max_iteration):
-        clf = Perceptron(tol=1e-3) #Create perceptron Object
-        clf.fit(x, y) #Train it 
-        error = (1-clf.score(x, y))#check error 
-        if error<best_error[itr]:
-            best_clf = copy.deepcopy(clf) #Copy the model object
-            best_error.append(error)
-            itr+=1            
-    return best_clf,best_error,clf
-#%% OLD FAITHFUL DATASET
-def Get_Old_Faithful():
-    path_to_data=os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Data'))
-    csv_data=glob(os.path.join(path_to_data, "*.csv"))
-    iter=0
-    data=[]
-    for files in csv_data:
-        temp = read_csv(csv_data[iter])
-        temp=temp.values
-        data.append(temp)
-        iter=iter+10
-    # converting it into a float array
-    data=np.squeeze(np.asarray(data))
- 
-    #% Normalizing
-    data_mean=np.mean(data,axis=0)
-    data_std=np.std(data,axis=0)
-    data=data-data_mean
-    data=data/data_std
-    #Creating a data label column to say which cluster a point lies in
-    data[:,0]=0  
-    return data 
+def pocket_percep(x_train,y_train):
+    bias=np.ones((x_train.shape[0],1))
+    y=y_train+0 #0 is mapped to 1 and 1 is mapped to -1
+    
+    y=np.expand_dims(y,axis=1)
+    x=np.concatenate((bias,x_train),axis=1)
+    learning_rate=0.001
+
+    W=np.zeros((x_train.shape[1]+1))
+    # W=[1,0.5,3]
+    # mf.Plot_Figs(y_train,x_train,K,1,"TEST","x1","x2",hyper=W)
+    best_error=len(y)
+    for i in range(100):
+        learning_rate=1
+        prediction=(np.sign(x@W)/2)+0.5 #Predict
+        error_vec=(y.T-prediction).T
+        error=error_vec[error_vec!=0]
+        error=len(error)
+        # missclassified_indicies=(error!=0) #Collect all the wrongly predicted indicies (Wherever w.TX<=0)
+        # missclassified_indicies=np.squeeze(missclassified_indicies)
+        # grad=x[missclassified_indicies,:]*y[missclassified_indicies]
+        grad=np.sum(error_vec*x,axis=0)
+        # grad=np.sum(x[missclassified_indicies,:],axis=0)
+        W=W+learning_rate*grad
+        if error<best_error:
+            best_W=W
+            best_error=error
+            if error==0:
+                return W
+        error_vec=error_vec[error_vec!=0]
+        print(error)
+    return best_W
+#%% CLASSIFYING PERCEPTRON
+def linear_classify(W,x_test,y_test):
+    bias=np.ones((x_test.shape[0],1))
+    y=y_test+0 #0 is mapped to 1 and 1 is mapped to -1    
+    y=np.expand_dims(y,axis=1)
+    x=np.concatenate((bias,x_test),axis=1) 
+    prediction=(np.sign(x@W)+1)/2 #Predict
+    error_vec=(y.T-prediction).T
+    error=error_vec[error_vec!=0]
+    error=len(error)
+    return error/len(y), prediction
+#%%LINEAR LEAST SQUARES
+def linear_least_squares(x_train,y_train):
+    bias=np.ones((x_train.shape[0],1))
+    y=2*y_train-1 #0 is mapped to 1 and 1 is mapped to -1
+    x=np.concatenate((bias,x_train),axis=1)    
+    W=np.linalg.inv(x.T@x)@x.T@y
+    return W
 #%% MNIST
 """Seema's Code 
 req_class= list of numbers to be input
@@ -136,169 +147,48 @@ def get_random_cov(K,d):
         temp=np.dstack([datasets.make_spd_matrix(d)*8])
         cov.append(temp)
     return np.dstack(cov)
-
-#%% E-Step GMM
-def E_Step_GMM(data,K,theta):
-
-    means=theta[0]
-    Covariance=theta[1]
-    proportions=theta[2]
-    #Computing responsibility coefficients of each point for each cluster.
-    responsibility=np.zeros((len(data),K))
-    for i in range(K):
-        itr=0    
-        for x in data[:,1:]:
-            normalising=0
-            N_xn=multivariate_normal.pdf(x,mean=means[:,i], cov=Covariance[:,:,i])
-            responsibility[itr][i]=proportions[i]*N_xn
-            for j in range(K):
-                normalising+=proportions[j]*multivariate_normal.pdf(x,mean=means[:,j], cov=Covariance[:,:,j])
-            responsibility[itr][i]=responsibility[itr][i]/normalising
-            itr+=1
-
-    return responsibility
-#%% E-Step Bernoulli
-def E_Step_Bern(data,K,theta):
-    U=theta[0]
-    proportions=theta[1]
-    #Computing responsibility coefficients of each point for each cluster.
-    responsibility=np.zeros((len(data),K))
-    alpha=0
-    for k in range(K):
-        itr=0
-        for x in data[:,1:]:
-            normalising=0
-            P_xn=multi_bern_pdf(x,U[:,k])
-            responsibility[itr][k]=proportions[k]*P_xn+alpha
-            for j in range(K):
-                normalising+=proportions[j]*multi_bern_pdf(x,U[:,j])+alpha*K
-            responsibility[itr][k]=responsibility[itr][k]/normalising
-            itr+=1
-    return responsibility
-#%% M-STEP GMM
-def M_Step_GMM(data,responsibility):
-    [N,K]=np.shape(responsibility) #N is number of data points
-    [_,d]=np.shape(data[:,1:]) #Data dimension
-    
-    #Compute Proportions
-    Nk=np.sum(responsibility,axis=0)
-    proportions=Nk/N
-        
-    #Compute Means
-    means=np.zeros((K,d))        
-    for k in range(K):
-        temp1=data[:,1:]
-        temp2=responsibility[:,k]
-        temp=temp1*temp2[:,None] #multiplying a vector with multiple columns
-        means[k]=(1/Nk[k])*np.sum(temp,axis=0)  
-    means=np.transpose(means)
-        
-    #Compute Covariance
-    Covariance=np.zeros((d,d,K))        
-    for k in range(K):
-        for n in range(N):
-            temp1=data[n,1:]-means[:,k]
-            temp2=np.outer(temp1,np.transpose(temp1))
-            temp=responsibility[n,k]*temp2
-            Covariance[:,:,k]+=temp
-        Covariance[:,:,k]=(1/Nk[k])*Covariance[:,:,k]
-    
-    theta=[means,Covariance,proportions]
-    Likelihood=0
-    log_likelihood=0
-    for n in range(N):
-        for k in range(K):
-            Likelihood+=proportions[k]*multivariate_normal.pdf(data[n,1:],mean=means[:,k], cov=Covariance[:,:,k])
-        log_likelihood+=np.log(Likelihood)
-            
-    return theta, log_likelihood
-
-#%% M-STEP BERNOULLI
-def M_Step_Bern(data,responsibility):
-    [N,K]=np.shape(responsibility) #N is number of data points
-    [_,d]=np.shape(data[:,1:]) #Data dimension
-    alpha=0
-    #Compute Proportions
-    Nk=np.sum(responsibility,axis=0)
-    proportions=(Nk+alpha)/(N+alpha*K)
-        
-    #Compute Means
-    means=np.zeros((K,d))        
-    for k in range(K):
-        temp1=data[:,1:]
-        temp2=responsibility[:,k]
-        temp=temp1*temp2[:,None] #multiplying a vector with multiple columns
-        means[k]=(1/(Nk[k]+alpha*d))*(np.sum(temp,axis=0) +alpha)
-    means=np.transpose(means)
-    
-    theta=[means,proportions]
-    
-    log_likelihood=0
-    for n in range(N):
-        Likelihood=0
-        for k in range(K):
-            Likelihood+=proportions[k]*multi_bern_pdf(data[n,1:],means[:,k])
-        log_likelihood+=np.log(Likelihood)       
-    return theta, log_likelihood
-#%% MULTI-VARIABLE BERNOULLI PDF
-# def multi_bern_pdf(x,U):
-#     x=np.asarray(x)
-#     U=np.asarray(U)
-#     px=(U**x)*((1-U)**(1-x))
-#     return np.product((px))
-#%% bernoulli
-def multi_bern_pdf(data, means):
-    '''To compute the probability of x for each bernouli distribution
-    data = N X D matrix
-    means = K X D matrix
-    prob (result) = N X K matrix 
-    '''
-    N = len(data)
-    K = len(means)
-    #compute prob(x/mean)
-    # prob[i, k] for ith data point, and kth cluster/mixture distribution
-    prob = np.zeros((N, K))
-    
-    for i in range(N):
-        for k in range(K):
-            prob[i,k] = np.prod((means[k]**data[i])*((1-means[k])**(1-data[i])))
-    
-    return prob
 #%% PLOTS
-from skimage.transform import resize
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
-def Plot_Figs(theta_history,cluster_label_hist,data,K,iterations,title_name,x_name,y_name):
+def Plot_Figs(cluster_label_hist,data,K,iterations,title_name,x_name,y_name,**kwargs):
     # plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
     # plt.plot(range(1,iterations+1),liklihood_history)   
     itr=0    
-    
+    hyper=kwargs.get("hyper",-1)
     for i in range(0,iterations):
-        plt.figure(num=itr, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')                    
+        # plt.figure(num=itr, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')                    
+        plt.figure()
         itr+=0
         x=[]
         y=[]
-        for k in range(K):
-            
-            mean1=theta_history[i+1][0][:,k][0]
-            mean2=theta_history[i+1][0][:,k][1]
-            plot_data=data[cluster_label_hist[i]==k,1:]
+        # data=np.expand_dims(data,axis=1)
+        for k in range(K):            
+            plot_data=data[cluster_label_hist==k,:]            
+            plot_data=np.squeeze(plot_data)
             x=plot_data[:,0]
             y=plot_data[:,1]
             colormap = plt.cm.get_cmap("Set1")                       
         
-            if i<17 or i>=iterations-1:
-                plt.scatter(x,y,color=colormap(k),s=5)
-                plt.scatter(mean1,mean2,color=colormap(k),marker="o",s=50)     
-                draw_ellipse((mean1,mean2),theta_history[i+1][1][:,:,k],alpha=0.2, color=colormap(k))                                             
-                final_title_name=title_name+" Iteration "+str(i+1)                        
+            # if i<17 or i>=iterations-1:
+            plt.scatter(x,y,color=colormap(k),s=5)
+            # plt.scatter(mean1,mean2,color=colormap(k),marker="o",s=50)     
+            # draw_ellipse((mean1,mean2),theta_history[i+1][1][:,:,k],alpha=0.2, color=colormap(k))                                             
+        final_title_name=title_name
         # plt.figure(num=itr, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')            
         plt.title(final_title_name,fontsize=21)            
         plt.xlabel(x_name,fontsize=21)
-        plt.ylabel(y_name,fontsize=21)        
-        if i<17 or i>=iterations:              
-            plt.show()
+        plt.ylabel(y_name,fontsize=21)      
+        if type(hyper)!='int':
+            m=-np.asarray([hyper[1]/hyper[2]])
+            c=-np.asarray([hyper[0]/hyper[2]])
+            xmin, xmax = plt.xlim()
+            x = np.linspace(xmin, xmax)
+            y=(m)*x+c
+            plt.plot(x,y,color=colormap(k+1))
+            # plt.plot(x,x,color=colormap(k+2))
+        plt.show()
     print("Done")
+    
 #%% SUBPLOTS   
 def Plot_SubPlots(theta_history,cluster_label_hist,data,K,iterations,title_name,x_name,y_name):
     itr=0
