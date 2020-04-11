@@ -20,8 +20,7 @@ def pocket_percep(x_train,y_train):
     learning_rate=0.001
 
     W=np.zeros((x_train.shape[1]+1))
-    # W=[1,0.5,3]
-    # mf.Plot_Figs(y_train,x_train,K,1,"TEST","x1","x2",hyper=W)
+
     best_error=len(y)
     for i in range(100):
         learning_rate=1
@@ -29,11 +28,8 @@ def pocket_percep(x_train,y_train):
         error_vec=(y.T-prediction).T
         error=error_vec[error_vec!=0]
         error=len(error)
-        # missclassified_indicies=(error!=0) #Collect all the wrongly predicted indicies (Wherever w.TX<=0)
-        # missclassified_indicies=np.squeeze(missclassified_indicies)
-        # grad=x[missclassified_indicies,:]*y[missclassified_indicies]
         grad=np.sum(error_vec*x,axis=0)
-        # grad=np.sum(x[missclassified_indicies,:],axis=0)
+
         W=W+learning_rate*grad
         if error<best_error:
             best_W=W
@@ -41,7 +37,7 @@ def pocket_percep(x_train,y_train):
             if error==0:
                 return W
         error_vec=error_vec[error_vec!=0]
-        print(error)
+        # print(error)
     return best_W
 #%% CLASSIFYING PERCEPTRON
 def linear_classify(W,x_test,y_test):
@@ -61,6 +57,93 @@ def linear_least_squares(x_train,y_train):
     x=np.concatenate((bias,x_train),axis=1)    
     W=np.linalg.inv(x.T@x)@x.T@y
     return W
+
+#%%LOGISTIC REGRESSION
+def log_reg(x_train,y_train):
+    bias=np.ones((x_train.shape[0],1))
+    y=y_train+0 #0 is mapped to 1 and 1 is mapped to -1
+    
+    y=np.expand_dims(y,axis=1)
+    x=np.concatenate((bias,x_train),axis=1)
+    learning_rate=0.001
+    W=np.zeros((x_train.shape[1]+1))
+    
+    for i in range(100):
+        learning_rate=1
+        prediction=(np.sign(x@W)/2)+0.5 #Predict
+        error_vec=(y.T-prediction).T
+        error=error_vec[error_vec!=0]
+        error=len(error)    
+        grad=[sigmoid(W,x)-y][0]
+        grad=np.sum((grad*x),axis=0)        
+        W=W-learning_rate*grad
+        if error==0:
+            break
+    return W
+
+def sigmoid(a,x):
+    z=x@a
+    z=1/(1+np.exp(-z))
+    return np.expand_dims(z,axis=1)
+#%% FISCHER LINEAR DISCRIMINANT ANALYSIS
+def FLDA(x_train,y_train):
+    y=y_train+0 #0 is mapped to 1 and 1 is mapped to -1
+    x=x_train
+    y=np.expand_dims(y,axis=1)
+    x0=x_train[y_train==0]
+    x1=x0=x_train[y_train==1]
+    m0=np.mean(x_train[y_train==0],axis=0)
+    m1=np.mean(x_train[y_train==1],axis=0)
+    Sw=0
+    for i in range(x0.shape[0]):
+        temp=np.expand_dims(x0[i]-m0,axis=1)
+        Sw=Sw+temp@temp.T
+        
+    for i in range(x1.shape[0]):
+        temp=np.expand_dims(x1[i]-m1,axis=1)
+        Sw=Sw+temp@temp.T    
+    
+    W=np.linalg.inv(Sw)@(m1-m0)
+    
+    b=np.ones((x_train.shape[0],1))
+    x=np.concatenate((b,x_train),axis=1)    
+    #Linear search for bias
+    best_error=len(y)
+    low=0.1
+    high=0.11
+    itr=0
+    itr2=0
+    for _ in range(5000):
+        if itr2>=len(np.linspace(low,high,100)):
+            break
+        
+        bias=np.linspace(low,high,100)[itr2]
+        w=[bias,W]
+        w=np.hstack(w)
+        prediction=(np.sign(x@w)/2)+0.5 #Predict
+        error_vec=(y.T-prediction).T
+        error=error_vec[error_vec!=0]
+        error=len(error)
+
+        if error<best_error:
+            best_bias=bias
+            best_error=error
+            if bias!=low:
+                low=bias-2*bias
+                high=bias+2*bias
+                itr2=0
+            w=[best_bias,W]
+            w=np.hstack(W)
+            if error==0:
+                return W
+        error_vec=error_vec[error_vec!=0]
+        itr+=1
+        itr2+=1
+       
+        
+    w=[best_bias,W]
+    w=np.hstack(w)        
+    return w
 #%% MNIST
 """Seema's Code 
 req_class= list of numbers to be input
@@ -130,14 +213,16 @@ def Get_Sythetic(K,d,N,**kwargs):
         pick_distribution=np.random.multinomial(1,priors,size=1)#one hot vector indicating which distribution to use
         k=np.where(pick_distribution==1)[1][0] #Index of the 1 in the one-hot vector
         data[n,0]=k
+        
         data[n,1:]=np.random.multivariate_normal(means[:,k],covariance[:,:,k],size=1)
 
     #% Normalizing
-    data_mean=np.mean(data[:,1:],axis=0)
-    data_std=np.std(data[:,1:],axis=0)
-    data[:,1:]=data[:,1:]-data_mean
-    data[:,1:]=data[:,1:]/data_std    
+    # data_mean=np.mean(data[:,1:],axis=0)
+    # data_std=np.std(data[:,1:],axis=0)
+    # data[:,1:]=data[:,1:]-data_mean
+    # data[:,1:]=data[:,1:]/data_std    
     label=data[:,0]
+    label[label==2]=1
     return label, data[:,1:]
 #%% Random covariance matricies            
 def get_random_cov(K,d):
@@ -150,43 +235,36 @@ def get_random_cov(K,d):
 #%% PLOTS
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
-def Plot_Figs(cluster_label_hist,data,K,iterations,title_name,x_name,y_name,**kwargs):
+def Plot_Figs(cluster_label_hist,data,K,title_name,x_name,y_name,**kwargs):
     # plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
     # plt.plot(range(1,iterations+1),liklihood_history)   
     itr=0    
     hyper=kwargs.get("hyper",-1)
-    for i in range(0,iterations):
-        # plt.figure(num=itr, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')                    
-        plt.figure()
-        itr+=0
-        x=[]
-        y=[]
-        # data=np.expand_dims(data,axis=1)
-        for k in range(K):            
-            plot_data=data[cluster_label_hist==k,:]            
-            plot_data=np.squeeze(plot_data)
-            x=plot_data[:,0]
-            y=plot_data[:,1]
-            colormap = plt.cm.get_cmap("Set1")                       
-        
-            # if i<17 or i>=iterations-1:
-            plt.scatter(x,y,color=colormap(k),s=5)
-            # plt.scatter(mean1,mean2,color=colormap(k),marker="o",s=50)     
-            # draw_ellipse((mean1,mean2),theta_history[i+1][1][:,:,k],alpha=0.2, color=colormap(k))                                             
-        final_title_name=title_name
-        # plt.figure(num=itr, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')            
-        plt.title(final_title_name,fontsize=21)            
-        plt.xlabel(x_name,fontsize=21)
-        plt.ylabel(y_name,fontsize=21)      
-        if type(hyper)!='int':
-            m=-np.asarray([hyper[1]/hyper[2]])
-            c=-np.asarray([hyper[0]/hyper[2]])
-            xmin, xmax = plt.xlim()
-            x = np.linspace(xmin, xmax)
-            y=(m)*x+c
-            plt.plot(x,y,color=colormap(k+1))
-            # plt.plot(x,x,color=colormap(k+2))
-        plt.show()
+    plt.figure()
+    itr+=0
+    x=[]
+    y=[]
+    # data=np.expand_dims(data,axis=1)
+    for k in range(K):            
+        plot_data=data[cluster_label_hist==k,:]            
+        plot_data=np.squeeze(plot_data)
+        x=plot_data[:,0]
+        y=plot_data[:,1]
+        colormap = plt.cm.get_cmap("Set1")
+        plt.scatter(x,y,color=colormap(k),s=5)
+                                        
+    final_title_name=title_name          
+    plt.title(final_title_name,fontsize=21)            
+    plt.xlabel(x_name,fontsize=21)
+    plt.ylabel(y_name,fontsize=21)      
+    if type(hyper) is not int:
+        m=-np.asarray([hyper[1]/hyper[2]])
+        c=-np.asarray([hyper[0]/hyper[2]])
+        xmin, xmax = plt.xlim()
+        x = np.linspace(xmin, xmax)
+        y=(m)*x+c
+        plt.plot(x,y,color=colormap(k+1))
+    plt.show()
     print("Done")
     
 #%% SUBPLOTS   
