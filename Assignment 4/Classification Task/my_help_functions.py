@@ -305,20 +305,19 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
     X1, X2 = np.meshgrid(np.arange(start=X_set[:, 0].min()-1,stop=X_set[:, 0].max()+1,step=0.1),
                          np.arange(start=X_set[:,1].min()-1,stop=X_set[:,1].max()+1,step=0.1))
     test_points=np.array([X1.ravel(), X2.ravel()]).T
-    if type(classifier_weights)==int:
-        from sklearn.naive_bayes import GaussianNB
-        gnb = GaussianNB()
-        range_of_points=gnb.predict(test_points) #Populate the mesh grid
+    if type(classifier_weights)!=np.ndarray:
+        range_of_points=classifier_weights.predict(test_points) #Populate the mesh grid
     else:
         range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True)
     
     classifier_regions=range_of_points.reshape(X1.shape) #Reshape it into a matrix
-    subplot.contourf(X1, X2,classifier_regions,alpha = 0.75, cmap = ListedColormap(('orange', 'green')))
+    subplot.contourf(X1, X2,classifier_regions,alpha = 0.75, cmap = ListedColormap(('black', 'cyan')))
     plt.xlim(X1.min(), X1.max())
     plt.ylim(X2.min(), X2.max())
     for i, j in enumerate(np.unique(y_set)):
         subplot.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
-                    c = ListedColormap(('red', 'green'))(i), label = "class " + str(int(j)),marker='.')
+                    c = ListedColormap(('orange', 'red'))(i), label = "class "
+                    + str(int(j)),marker='^' if i==0 else "o", s=30)
     subplot.set_title(title_name)
     # plt.xlabel('Age')
     # plt.ylabel('Estimated Salary')
@@ -333,34 +332,52 @@ def Plot_SubPlots(data,K,title_name,x_name,y_name):
     y_train=data[1]
     x_test=data[2]
     y_test=data[3]
-    fig, axs = plt.subplots(2,2, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=True,sharey=True)
+    fig, axs = plt.subplots(3,2, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=True,sharey=True)
     fig.subplots_adjust(hspace = .07, wspace=.001)
     axs = axs.ravel()
 
     # PERCEPTRON
     percep_pred=pocket_percep(x_train,y_train)
     [error_percep,_]=linear_classify(percep_pred,x_test,y_test)
-    MESH_plot(y_test,x_test,"Pocket Perceptron "+str(100*(1-round(error_percep,4)))+
+    MESH_plot(y_test,x_test,"Pocket Perceptron "+str(100-(np.round(100*error_percep,4)))+
               "% Accuracy",classifier_weights=percep_pred,subplot=axs[0])
     
     # LINEAR LEAST SQUARES
     linear_pred=linear_least_squares(x_train,y_train)
     [error_lin,_]=linear_classify(linear_pred,x_test,y_test)
-    MESH_plot(y_test,x_test,"Linear Least Squares"+str(100*(1-round(error_lin,4)))+
+    MESH_plot(y_test,x_test,"Linear Least Squares"+str(100-(np.round(100*error_lin,4)))+
               "% Accuracy",classifier_weights=percep_pred,subplot=axs[1])
     
     # LOGISTIC REGRESSION
     log_pred=log_reg(x_train,y_train)
     [error_logistic,_]=linear_classify(log_pred,x_test,y_test)
-    MESH_plot(y_test,x_test,"Logistic Regression "+str(100*(1-round(error_logistic,4)))+
+    MESH_plot(y_test,x_test,"Logistic Regression "+str(100-(np.round(100*error_logistic,4)))+
               "% Accuracy",classifier_weights=percep_pred,subplot=axs[2])
     
     # FISCHER LINEAR DISCRIMINANT ANALYSIS
     flda_pred=FLDA(x_train,y_train)
     [error_flda,_]=linear_classify(flda_pred,x_test,y_test)
-    MESH_plot(y_test,x_test,"Fischer's LDA "+str(100*(1-round(error_flda,4)))+
-              "% Accuracy",classifier_weights=percep_pred,subplot=axs[3])  
+    MESH_plot(y_test,x_test,"Fischer's LDA "+str(100-(np.round(100*error_flda,4)))+
+              "% Accuracy",classifier_weights=percep_pred,subplot=axs[3])
     
+    #Baye's PLOTS
+    from sklearn.naive_bayes import GaussianNB
+    gnb = GaussianNB()
+    y_pred=gnb.fit(x_train, y_train).predict(x_test) #Populate the mesh grid    
+    error_baye=len(y_test[y_pred!=y_test])/len(y_test)
+
+    gs = axs[4].get_gridspec()
+    # remove the underlying axes
+    for ax in axs[4:]:
+        ax.remove()
+    axbig = fig.add_subplot(gs[2, :])
+        
+    MESH_plot(y_test,x_test,"Baye's Classifier "+str(100-(np.round(100*error_baye,4)))+
+              "% Accuracy",classifier_weights=gnb.fit(x_train, y_train),subplot=axbig)
+
+
+    
+
     fig.text(0.5, 0.9, title_name, ha='center',fontsize=21)
     fig.text(0.5, 0.1, x_name, ha='center',fontsize=21)
     fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)         
