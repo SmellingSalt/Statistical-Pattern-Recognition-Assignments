@@ -24,7 +24,7 @@ covariance=[[[2,0],[0,2]],[[0.5,0],[0,2]],[[1,0],[0,1]]]
 
 #%%
 data=[x_train,y_train,x_test,y_test]
-mf.Plot_SubPlots(data,K,"Analysis 1","x1","x2")
+mf.Plot_SubPlots(data,"Analysis 1","x1","x2")
 
 
 

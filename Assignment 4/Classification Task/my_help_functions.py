@@ -311,12 +311,12 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
         range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True)
     
     classifier_regions=range_of_points.reshape(X1.shape) #Reshape it into a matrix
-    subplot.contourf(X1, X2,classifier_regions,alpha = 0.75, cmap = ListedColormap(('black', 'cyan')))
+    subplot.contourf(X1, X2,classifier_regions,alpha = 0.75, cmap = ListedColormap(('red', 'blue')))
     plt.xlim(X1.min(), X1.max())
     plt.ylim(X2.min(), X2.max())
     for i, j in enumerate(np.unique(y_set)):
         subplot.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
-                    c = ListedColormap(('orange', 'red'))(i), label = "class "
+                    c = ListedColormap(('black', 'white'))(i), label = "class "
                     + str(int(j)),marker='^' if i==0 else "o", s=30)
     subplot.set_title(title_name)
     # plt.xlabel('Age')
@@ -327,7 +327,7 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
 
 
 #%% SUBPLOTS   
-def Plot_SubPlots(data,K,title_name,x_name,y_name):
+def Plot_SubPlots(data,title_name,x_name,y_name):
     x_train=data[0]
     y_train=data[1]
     x_test=data[2]
@@ -373,15 +373,61 @@ def Plot_SubPlots(data,K,title_name,x_name,y_name):
     axbig = fig.add_subplot(gs[2, :])
         
     MESH_plot(y_test,x_test,"Baye's Classifier "+str(100-(np.round(100*error_baye,4)))+
-              "% Accuracy",classifier_weights=gnb.fit(x_train, y_train),subplot=axbig)
-
-
-    
-
+              "% Accuracy",classifier_weights=gnb.fit(x_train, y_train),subplot=axbig)    
     fig.text(0.5, 0.9, title_name, ha='center',fontsize=21)
     fig.text(0.5, 0.1, x_name, ha='center',fontsize=21)
     fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)         
-
+#%% EVALUATE CLASSIFIERS
+def Eval(data):
+    x_train=data[0]
+    y_train=data[1]
+    x_test=data[2]
+    y_test=data[3]
+    # PERCEPTRON
+    percep_pred=pocket_percep(x_train,y_train)
+    [error_percep,_]=linear_classify(percep_pred,x_test,y_test)
+    
+    # LINEAR LEAST SQUARES
+    linear_pred=linear_least_squares(x_train,y_train)
+    [error_lin,_]=linear_classify(linear_pred,x_test,y_test)
+    
+    # LOGISTIC REGRESSION
+    log_pred=log_reg(x_train,y_train)
+    [error_logistic,_]=linear_classify(log_pred,x_test,y_test)
+    
+    # FISCHER LINEAR DISCRIMINANT ANALYSIS
+    flda_pred=FLDA(x_train,y_train)
+    [error_flda,_]=linear_classify(flda_pred,x_test,y_test)
+    
+    #BAYE'S CLASSIFIER
+    from sklearn.naive_bayes import GaussianNB
+    gnb = GaussianNB()
+    y_pred=gnb.fit(x_train, y_train).predict(x_test) #Populate the mesh grid    
+    error_baye=len(y_test[y_pred!=y_test])/len(y_test)
+    
+    return np.asarray([1-error_percep,1-error_lin,1-error_logistic,1-error_flda,1-error_baye])
+#%% PLOT PERFORMANCE
+def Plot_Performance(data,priors,title_name):
+    a1=data[:,0]
+    a2=data[:,1]
+    a3=data[:,2]
+    a4=data[:,3]
+    a5=data[:,3]
+    plots=[a1,a2,a3,a4,a5]
+    plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')
+    colormap = plt.cm.get_cmap("Set1")
+    label=["Pocket Perceptron", "Linear Least Squares", "Logistic Regression", 
+           "Fischer's LDA", "Baye's Classifier"]
+    for i in range(5):
+        plt.plot(priors,plots[i],color=colormap(i),label=label[i])
+    plt.yticks(np.arange(0,1+0.5,0.05))
+    plt.grid()
+    plt.xlim(left=0)
+    plt.ylim((0,1))
+    plt.title(title_name)
+    plt.legend()
+    plt.xlabel("Accuracy")
+    plt.ylabel("Prior Probability for class 0")
 #%% TO DRAW ELLIPSE
 def draw_ellipse(position, covariance, ax=None, **kwargs):
 # taken from
