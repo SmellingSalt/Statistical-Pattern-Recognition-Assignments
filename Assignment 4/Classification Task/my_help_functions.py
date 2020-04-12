@@ -39,17 +39,21 @@ def pocket_percep(x_train,y_train):
         error_vec=error_vec[error_vec!=0]
         # print(error)
     return best_W
-#%% CLASSIFYING PERCEPTRON
-def linear_classify(W,x_test,y_test):
+#%% LINEAR CLASSIFY
+def linear_classify(W,x_test,y_test,**kwargs):
+    only_classify=kwargs.get("only_classify",False)
     bias=np.ones((x_test.shape[0],1))
-    y=y_test+0 #0 is mapped to 1 and 1 is mapped to -1    
-    y=np.expand_dims(y,axis=1)
     x=np.concatenate((bias,x_test),axis=1) 
-    prediction=(np.sign(x@W)+1)/2 #Predict
-    error_vec=(y.T-prediction).T
-    error=error_vec[error_vec!=0]
-    error=len(error)
-    return error/len(y), prediction
+    prediction=(np.sign(x@W)+1)/2 #Predict 0 or 1
+    if only_classify:
+        return prediction
+    else:
+        y=y_test+0 #0 is mapped to 1 and 1 is mapped to -1    
+        y=np.expand_dims(y,axis=1)
+        error_vec=(y.T-prediction).T
+        error=error_vec[error_vec!=0]
+        error=len(error)        
+        return error/len(y), prediction
 #%%LINEAR LEAST SQUARES
 def linear_least_squares(x_train,y_train):
     bias=np.ones((x_train.shape[0],1))
@@ -104,46 +108,49 @@ def FLDA(x_train,y_train):
         Sw=Sw+temp@temp.T    
     
     W=np.linalg.inv(Sw)@(m1-m0)
+    z=x@W
+    z0=z[y_train==0]
+    z1=z[y_train==1
+         ]
+    m0=np.mean(z0,axis=0)
+    m1=np.mean(z1,axis=0)
+    b1=-(m0+m1)/2
+    w1=[abs(b1),W]
+    w1=np.hstack(w1)
+    return w1
+    # std1=np.std(z0,axis=0)
+    # std2=np.std(z1,axis=0)
+    # # [b1,b2]=Gaussian_intersection(m0,m1,std1,std2)
+    # b1=-(m0+m1)/2
+    # # b1=0.0003
+    # w1=[abs(b1),W]
+    # w1=np.hstack(w1)
     
-    b=np.ones((x_train.shape[0],1))
-    x=np.concatenate((b,x_train),axis=1)    
-    #Linear search for bias
-    best_error=len(y)
-    low=0.1
-    high=0.11
-    itr=0
-    itr2=0
-    for _ in range(5000):
-        if itr2>=len(np.linspace(low,high,100)):
-            break
-        
-        bias=np.linspace(low,high,100)[itr2]
-        w=[bias,W]
-        w=np.hstack(w)
-        prediction=(np.sign(x@w)/2)+0.5 #Predict
-        error_vec=(y.T-prediction).T
-        error=error_vec[error_vec!=0]
-        error=len(error)
-
-        if error<best_error:
-            best_bias=bias
-            best_error=error
-            if bias!=low:
-                low=bias-2*bias
-                high=bias+2*bias
-                itr2=0
-            w=[best_bias,W]
-            w=np.hstack(W)
-            if error==0:
-                return W
-        error_vec=error_vec[error_vec!=0]
-        itr+=1
-        itr2+=1
-       
-        
-    w=[best_bias,W]
-    w=np.hstack(w)        
-    return w
+    # w2=[-abs(b2),W]
+    # w2=np.hstack(w2)
+    
+    # b=np.ones((x_train.shape[0],1))
+    # x=np.concatenate((b,x_train),axis=1) 
+    
+    # prediction=(np.sign(x@w1)/2)+0.5 #Predict
+    # error_vec=(y.T-prediction).T
+    # error1=error_vec[error_vec!=0]
+    # error1=len(error1)  
+    
+    # prediction=(np.sign(x@w2)/2)+0.5 #Predict
+    # error_vec=(y.T-prediction).T
+    # error2=error_vec[error_vec!=0]
+    # error2=len(error2) 
+    
+    # if error1<error2:
+    #     return w1
+    # else: return w2
+#%% Function to find Baye's Decision Boundary
+def Bayesian_Boundary(m1,m2,std1,std2,x):
+  a = 1/(2*std1*2) - 1/(2*std2*2)
+  b = m2/(std2*2) - m1/(std1*2)
+  c = m1**2/(2*std1**2)-m2**2/(2*std2**2)-np.log(std2/std1)
+  return (a*(x**2)+b*x+c)
 #%% MNIST
 """Seema's Code 
 req_class= list of numbers to be input
@@ -151,7 +158,6 @@ eg [1,2,3]
 Function returns a matrix with the first column as all 0's and all rows containing
 the binarized numbers  requested
 """
-from skimage.transform import resize
 def get_MNIST(req_class,sze):
     
     #%
@@ -235,12 +241,22 @@ def get_random_cov(K,d):
 #%% PLOTS
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
-def Plot_Figs(cluster_label_hist,data,K,title_name,x_name,y_name,**kwargs):
-    # plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
+def Plot_Figs(cluster_label_hist,data,K,title_name,**kwargs):
+    """To simply perform a scatter plot, make hyper an integer'hyper=-2'
+        To plot the baye's decision boundary, make bayes=1
+        To plot the using subplots, make plot=axs[i]"""
     # plt.plot(range(1,iterations+1),liklihood_history)   
     itr=0    
     hyper=kwargs.get("hyper",-1)
-    plt.figure()
+    plot=kwargs.get("subplot",plt)
+    bayes=kwargs.get("bayes",0)
+    if "subplot" in kwargs:
+        flag=1
+    else:
+        flag=0
+        plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
+    # plot.figure()
+    
     itr+=0
     x=[]
     y=[]
@@ -251,55 +267,103 @@ def Plot_Figs(cluster_label_hist,data,K,title_name,x_name,y_name,**kwargs):
         x=plot_data[:,0]
         y=plot_data[:,1]
         colormap = plt.cm.get_cmap("Set1")
-        plt.scatter(x,y,color=colormap(k),s=5)
+        marker="+" if k==0 else "^"
+        plot.scatter(x,y,color=colormap(k),s=50,marker=marker)
                                         
     final_title_name=title_name          
-    plt.title(final_title_name,fontsize=21)            
-    plt.xlabel(x_name,fontsize=21)
-    plt.ylabel(y_name,fontsize=21)      
+    if flag==0:
+        plot.title(final_title_name,fontsize=21)              #Single plot name
+    else:
+        plot.set_title(final_title_name,fontsize=21)    #Subplot name         
+    # plot.xlabel(x_name,fontsize=21)
+    # plot.ylabel(y_name,fontsize=21)      
     if type(hyper) is not int:
-        m=-np.asarray([hyper[1]/hyper[2]])
-        c=-np.asarray([hyper[0]/hyper[2]])
         xmin, xmax = plt.xlim()
         x = np.linspace(xmin, xmax)
-        y=(m)*x+c
-        plt.plot(x,y,color=colormap(k+1))
-    plt.show()
-    print("Done")
+        if bayes==0:
+            m=-np.asarray([hyper[1]/hyper[2]])
+            c=-np.asarray([hyper[0]/hyper[2]])
+            y=(m)*x+c
+        else:
+            m1=hyper[0]
+            m2=hyper[1]
+            std1=hyper[2]
+            std2=hyper[3]
+            x = np.linspace(xmin, xmax)
+            y=Bayesian_Boundary(m1,m2,std1,std2,x)
+        plot.plot(x,y,color=colormap(k+1))
+    # plot.show()
+    # print("Done")
+#%% MESH PLOTS
+from matplotlib.colors import ListedColormap
+def MESH_plot(y_set,X_set,title_name,**kwargs):
+    """X1 and X2 are the ranges for the x and y axes in 2D, . It is created 
+    by finding the smallest and largest data  points in each feature vector"""
+    classifier_weights=kwargs.get("classifier_weights",-1) #Only baye's classifier has no weights
+    subplot=kwargs.get("subplot",plt) 
     
+    X1, X2 = np.meshgrid(np.arange(start=X_set[:, 0].min()-1,stop=X_set[:, 0].max()+1,step=0.1),
+                         np.arange(start=X_set[:,1].min()-1,stop=X_set[:,1].max()+1,step=0.1))
+    test_points=np.array([X1.ravel(), X2.ravel()]).T
+    if type(classifier_weights)==int:
+        from sklearn.naive_bayes import GaussianNB
+        gnb = GaussianNB()
+        range_of_points=gnb.predict(test_points) #Populate the mesh grid
+    else:
+        range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True)
+    
+    classifier_regions=range_of_points.reshape(X1.shape) #Reshape it into a matrix
+    subplot.contourf(X1, X2,classifier_regions,alpha = 0.75, cmap = ListedColormap(('orange', 'green')))
+    plt.xlim(X1.min(), X1.max())
+    plt.ylim(X2.min(), X2.max())
+    for i, j in enumerate(np.unique(y_set)):
+        subplot.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                    c = ListedColormap(('red', 'green'))(i), label = "class " + str(int(j)),marker='.')
+    subplot.set_title(title_name)
+    # plt.xlabel('Age')
+    # plt.ylabel('Estimated Salary')
+    subplot.legend()
+    # plt.show()
+    
+
+
 #%% SUBPLOTS   
-def Plot_SubPlots(theta_history,cluster_label_hist,data,K,iterations,title_name,x_name,y_name):
-    itr=0
-    fig, axs = plt.subplots(6,3, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=True,sharey=True)
-    fig.subplots_adjust(hspace = .5, wspace=.001)
+def Plot_SubPlots(data,K,title_name,x_name,y_name):
+    x_train=data[0]
+    y_train=data[1]
+    x_test=data[2]
+    y_test=data[3]
+    fig, axs = plt.subplots(2,2, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=True,sharey=True)
+    fig.subplots_adjust(hspace = .07, wspace=.001)
     axs = axs.ravel()
-    ptr=0
-    for i in range(0,iterations):
-        itr+=0
-        x=[]
-        y=[]
-        for k in range(K):
-            mean1=theta_history[i+1][0][:,k][0]
-            mean2=theta_history[i+1][0][:,k][1]
-            plot_data=data[cluster_label_hist[i]==k,1:]
-            x=plot_data[:,0]
-            y=plot_data[:,1]
-            colormap = plt.cm.get_cmap("Set1")                       
-        
-            if i<17 or i>=iterations-1:
-                axs[ptr].scatter(x,y,color=colormap(k),s=5)
-                axs[ptr].scatter(mean1,mean2,color=colormap(k),marker="x",s=20)     
-                draw_ellipse((mean1,mean2),theta_history[i+1][1][:,:,k],alpha=0.2, color=colormap(k),ax=axs[ptr])
-                axs[ptr].set_title("Iteration "+str(i+1))  
-                                  
-                final_title_name=title_name
-        if i<17 or i>=iterations:
-            ptr+=1
-    fig.text(0.5, 0.9, final_title_name, ha='center',fontsize=21)
+
+    # PERCEPTRON
+    percep_pred=pocket_percep(x_train,y_train)
+    [error_percep,_]=linear_classify(percep_pred,x_test,y_test)
+    MESH_plot(y_test,x_test,"Pocket Perceptron "+str(100*(1-round(error_percep,4)))+
+              "% Accuracy",classifier_weights=percep_pred,subplot=axs[0])
+    
+    # LINEAR LEAST SQUARES
+    linear_pred=linear_least_squares(x_train,y_train)
+    [error_lin,_]=linear_classify(linear_pred,x_test,y_test)
+    MESH_plot(y_test,x_test,"Linear Least Squares"+str(100*(1-round(error_lin,4)))+
+              "% Accuracy",classifier_weights=percep_pred,subplot=axs[1])
+    
+    # LOGISTIC REGRESSION
+    log_pred=log_reg(x_train,y_train)
+    [error_logistic,_]=linear_classify(log_pred,x_test,y_test)
+    MESH_plot(y_test,x_test,"Logistic Regression "+str(100*(1-round(error_logistic,4)))+
+              "% Accuracy",classifier_weights=percep_pred,subplot=axs[2])
+    
+    # FISCHER LINEAR DISCRIMINANT ANALYSIS
+    flda_pred=FLDA(x_train,y_train)
+    [error_flda,_]=linear_classify(flda_pred,x_test,y_test)
+    MESH_plot(y_test,x_test,"Fischer's LDA "+str(100*(1-round(error_flda,4)))+
+              "% Accuracy",classifier_weights=percep_pred,subplot=axs[3])  
+    
+    fig.text(0.5, 0.9, title_name, ha='center',fontsize=21)
     fig.text(0.5, 0.1, x_name, ha='center',fontsize=21)
     fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)         
-    print("Done")   
-
 
 #%% TO DRAW ELLIPSE
 def draw_ellipse(position, covariance, ax=None, **kwargs):
