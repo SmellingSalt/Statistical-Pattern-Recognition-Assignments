@@ -40,7 +40,7 @@ def pocket_percep(x_train,y_train):
         # print(error)
     return best_W
 #%% LINEAR CLASSIFY
-def linear_classify(W,x_test,y_test,**kwargs):
+def linear_classify(W,x_test,y_test,**kwargs): #only classify ensures that only the prediction is returned
     only_classify=kwargs.get("only_classify",False)
     bias=np.ones((x_test.shape[0],1))
     x=np.concatenate((bias,x_test),axis=1) 
@@ -63,18 +63,19 @@ def linear_least_squares(x_train,y_train):
     return W
 
 #%%LOGISTIC REGRESSION
-def log_reg(x_train,y_train):
+def log_reg(x_train,y_train,**kwargs):
+    #kwargs is to initialise W
     bias=np.ones((x_train.shape[0],1))
     y=y_train+0 #0 is mapped to 1 and 1 is mapped to -1
     
     y=np.expand_dims(y,axis=1)
     x=np.concatenate((bias,x_train),axis=1)
     learning_rate=0.001
-    W=np.zeros((x_train.shape[1]+1))
+    W=kwargs.get('W',np.zeros((x_train.shape[1]+1)))
     
     for i in range(100):
         learning_rate=1
-        prediction=(np.sign(x@W)/2)+0.5 #Predict
+        prediction=(sigmoid(W,x)/2)+0.5 #Predict
         error_vec=(y.T-prediction).T
         error=error_vec[error_vec!=0]
         error=len(error)    
@@ -84,9 +85,10 @@ def log_reg(x_train,y_train):
         if error==0:
             break
     return W
-
+#%%SIGMOID
 def sigmoid(a,x):
     z=x@a
+    z[z<=-5]=-5
     z=1/(1+np.exp(-z))
     return np.expand_dims(z,axis=1)
 #%% FISCHER LINEAR DISCRIMINANT ANALYSIS
@@ -151,6 +153,7 @@ def Bayesian_Boundary(m1,m2,std1,std2,x):
   b = m2/(std2*2) - m1/(std1*2)
   c = m1**2/(2*std1**2)-m2**2/(2*std2**2)-np.log(std2/std1)
   return (a*(x**2)+b*x+c)
+import tensorflow as tf
 #%% MNIST
 """Seema's Code 
 req_class= list of numbers to be input
@@ -158,13 +161,13 @@ eg [1,2,3]
 Function returns a matrix with the first column as all 0's and all rows containing
 the binarized numbers  requested
 """
-def get_MNIST(req_class,sze):
+def get_MNIST(req_class):
     
     #%
     #from mnist import MNIST
     import numpy as np
     from sklearn.utils import shuffle   
-
+    sze=28 #Image resolution
     
     #%
     from keras.datasets import mnist
@@ -204,10 +207,26 @@ def get_MNIST(req_class,sze):
     #%
     train_df_lab = np.concatenate(train_lab, axis = 0)
     train_df_data = np.concatenate(train_com, axis = 0)
-    train_df_data = np.concatenate([np.zeros((train_df_lab.shape[0], 1), dtype=int), train_df_data], axis = 1)
+    # train_df_data = np.concatenate([np.zeros((train_df_lab.shape[0], 1), dtype=int), train_df_data], axis = 1)
     [train_sff,train_labs] = shuffle(train_df_data, train_df_lab)     # Shuffle the data and label (to properly train the network)
     
-    return(train_sff)   
+    # labels=train_sff[:,1]
+    # train_sff=train_sff[:,1:]
+    # mean=np.mean(train_sff,axis=1)
+    # std=np.std(train_sff,axis=1)
+
+    return train_sff,train_labs
+#%% SHUFFLE DATASET
+import random
+def My_Shuffle(x,y,how_many_to_pick):
+    length=len(y)
+    iterate=list(range(0,length))
+    random.shuffle(iterate)
+    indices = np.arange(x.shape[0])
+    np.random.shuffle(indices)
+    tempx=x[indices]
+    tempy=y[indices]
+    return tempx[:how_many_to_pick], tempy[:how_many_to_pick]
 #%% SYNTHETIC DATASET
 def Get_Sythetic(K,d,N,**kwargs):   
     means=kwargs.get('means',np.random.randint(-100,100,size=[d,K]))
@@ -242,7 +261,7 @@ def get_random_cov(K,d):
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 def Plot_Figs(cluster_label_hist,data,K,title_name,**kwargs):
-    """To simply perform a scatter plot, make hyper an integer'hyper=-2'
+    """To simply perform a scatter plot, ignore hyper
         To plot the baye's decision boundary, make bayes=1
         To plot the using subplots, make plot=axs[i]"""
     # plt.plot(range(1,iterations+1),liklihood_history)   
@@ -268,7 +287,7 @@ def Plot_Figs(cluster_label_hist,data,K,title_name,**kwargs):
         y=plot_data[:,1]
         colormap = plt.cm.get_cmap("Set1")
         marker="+" if k==0 else "^"
-        plot.scatter(x,y,color=colormap(k),s=50,marker=marker)
+        plot.scatter(x,y,color=colormap(k),s=50 if k==0 else 5,marker=marker)
                                         
     final_title_name=title_name          
     if flag==0:
@@ -317,7 +336,7 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
     for i, j in enumerate(np.unique(y_set)):
         subplot.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
                     c = ListedColormap(('black', 'white'))(i), label = "class "
-                    + str(int(j)),marker='^' if i==0 else "o", s=30)
+                    + str(int(j)),marker='^' if i==0 else "+", s=15 if i==0 else 5)
     subplot.set_title(title_name)
     # plt.xlabel('Age')
     # plt.ylabel('Estimated Salary')
@@ -426,8 +445,8 @@ def Plot_Performance(data,priors,title_name):
     plt.ylim((0,1))
     plt.title(title_name)
     plt.legend()
-    plt.xlabel("Accuracy")
-    plt.ylabel("Prior Probability for class 0")
+    plt.ylabel("Accuracy")
+    plt.xlabel("Prior Probability for class 0")
 #%% TO DRAW ELLIPSE
 def draw_ellipse(position, covariance, ax=None, **kwargs):
 # taken from
