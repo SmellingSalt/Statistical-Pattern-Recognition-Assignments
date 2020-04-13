@@ -11,7 +11,7 @@ import numpy as np
 from scipy.stats import multivariate_normal
 from skimage.transform import resize
 #%% POCKET PERCEPTRON
-def pocket_percep(x_train,y_train):
+def pocket_percep(x_train,y_train,**kwargs):
     bias=np.ones((x_train.shape[0],1))
     y=y_train+0 #0 is mapped to 1 and 1 is mapped to -1
     
@@ -19,9 +19,9 @@ def pocket_percep(x_train,y_train):
     x=np.concatenate((bias,x_train),axis=1)
     learning_rate=0.001
 
-    W=np.zeros((x_train.shape[1]+1))
+    W=kwargs.get('W',np.zeros((x_train.shape[1]+1)))
 
-    best_error=len(y)
+    best_error=len(y)+100
     for i in range(100):
         learning_rate=1
         prediction=(np.sign(x@W)/2)+0.5 #Predict
@@ -342,8 +342,34 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
     # plt.ylabel('Estimated Salary')
     subplot.legend()
     # plt.show()
+#%% MULTI CLASS MESH
+def multi_mesh(y_set,X_set,title_name,**kwargs):  
+    """X1 and X2 are the ranges for the x and y axes in 2D, . It is created 
+    by finding the smallest and largest data  points in each feature vector"""
+    classifier_weights=kwargs.get("classifier_weights",-1) #Only baye's classifier has no weights
+    subplot=kwargs.get("subplot",plt) 
     
-
+    X1, X2 = np.meshgrid(np.arange(start=X_set[:, 0].min()-1,stop=X_set[:, 0].max()+1,step=0.1),
+                         np.arange(start=X_set[:,1].min()-1,stop=X_set[:,1].max()+1,step=0.1))
+    test_points=np.array([X1.ravel(), X2.ravel()]).T
+    if type(classifier_weights)!=np.ndarray:
+        range_of_points=classifier_weights.predict(test_points) #Populate the mesh grid
+    else:
+        range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True)
+    
+    classifier_regions=range_of_points.reshape(X1.shape) #Reshape it into a matrix
+    subplot.contourf(X1, X2,classifier_regions,alpha = 0.75, cmap = ListedColormap(('red', 'blue')))
+    plt.xlim(X1.min(), X1.max())
+    plt.ylim(X2.min(), X2.max())
+    for i, j in enumerate(np.unique(y_set)):
+        subplot.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                    c = ListedColormap(('black', 'white'))(i), label = "class "
+                    + str(int(j)),marker='^' if i==0 else "+", s=15 if i==0 else 5)
+    subplot.set_title(title_name)
+    # plt.xlabel('Age')
+    # plt.ylabel('Estimated Salary')
+    subplot.legend()
+    # plt.show()
 
 #%% SUBPLOTS   
 def Plot_SubPlots(data,title_name,x_name,y_name):
@@ -395,7 +421,8 @@ def Plot_SubPlots(data,title_name,x_name,y_name):
               "% Accuracy",classifier_weights=gnb.fit(x_train, y_train),subplot=axbig)    
     fig.text(0.5, 0.9, title_name, ha='center',fontsize=21)
     fig.text(0.5, 0.1, x_name, ha='center',fontsize=21)
-    fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)         
+    fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)
+          
 #%% EVALUATE CLASSIFIERS
 def Eval(data):
     x_train=data[0]

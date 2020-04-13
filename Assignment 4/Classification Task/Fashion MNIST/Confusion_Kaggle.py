@@ -5,9 +5,9 @@ import numpy as np
 
 def plot_confusion_matrix(cm,
                           target_names,
-                          title='\n Confusion matrix',
+                          
                           cmap=None,
-                          normalize=True):
+                          normalize=True,**kwargs):
     """
     given a sklearn confusion matrix (cm), make a nice plot
 
@@ -43,9 +43,9 @@ def plot_confusion_matrix(cm,
     import matplotlib.pyplot as plt
     import numpy as np
     import itertools
-
-    accuracy = np.trace(cm) / float(np.sum(cm))
-    misclass = 1 - accuracy
+    title=kwargs.get('title','Confusion Matrix')
+    accuracy = (np.trace(cm) / float(np.sum(cm)))*100
+    misclass = (100 - accuracy)
 
     if cmap is None:
         # cmap = plt.get_cmap('YlGnBu')
@@ -55,14 +55,15 @@ def plot_confusion_matrix(cm,
     plt.figure(num=None, figsize=(10, 10), dpi=150, facecolor='w', edgecolor='k')    
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.rcParams.update({'font.size': 15})
-    plt.title(title)
-    plt.rcParams.update({'font.size': 22})
+    plt.title(title,fontsize=25)
+    plt.rcParams.update({'font.size': 20})
     plt.colorbar()
 
-    if target_names is not None:
+    if target_names is not None:     
         tick_marks = np.arange(len(target_names))
-        plt.xticks(tick_marks, target_names, rotation=45)
-        plt.yticks(tick_marks, target_names)
+        plt.xticks(tick_marks, target_names, rotation=0,fontsize=25)
+        plt.yticks(tick_marks, target_names,fontsize=25)
+
 
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
@@ -71,16 +72,16 @@ def plot_confusion_matrix(cm,
     thresh = cm.max() / 1.5 if normalize else cm.max() / 2
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         if normalize:
-            plt.text(j, i, "{:0.4f}".format(cm[i, j]),
+            plt.text(j, i, "{:0.2f}%".format(cm[i, j]*100),
                      horizontalalignment="center",
-                     color="white" if cm[i, j] > thresh else "black")
+                     color="white" if cm[i, j] > thresh else "black",fontsize=20)
         else:
             plt.text(j, i, "{:,}".format(cm[i, j]),
                      horizontalalignment="center",
-                     color="white" if cm[i, j] > thresh else "black")
+                     color="white" if cm[i, j] > thresh else "black",fontsize=20)
 
 
-    plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('\nPredicted label\naccuracy={:0.4f}; misclass={:0.4f}'.format(accuracy, misclass))
+    # plt.tight_layout()    
+    plt.ylabel('True label',fontsize=25)
+    plt.xlabel('\nPredicted label\n Accuracy={:0.2f} %; Error={:0.2f} %'.format(accuracy, misclass),fontsize=25)
     plt.show()
