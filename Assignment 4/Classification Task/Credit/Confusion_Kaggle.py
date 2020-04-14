@@ -49,7 +49,7 @@ def plot_confusion_matrix(cm,
 
     if cmap is None:
         # cmap = plt.get_cmap('YlGnBu')
-        cmap = plt.get_cmap('YlOrRd')
+        cmap = plt.get_cmap('winter')
     
     # plt.rcParams.update({'font.size': 20})
     plt.figure(num=None, figsize=(10, 10), dpi=150, facecolor='w', edgecolor='k')    
@@ -70,6 +70,7 @@ def plot_confusion_matrix(cm,
 
 
     thresh = cm.max() / 1.5 if normalize else cm.max() / 2
+    thresh=thresh*100
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         if normalize:
             plt.text(j, i, "{:0.2f}%".format(cm[i, j]*100),
