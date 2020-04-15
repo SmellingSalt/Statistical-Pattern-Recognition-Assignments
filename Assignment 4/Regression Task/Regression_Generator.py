@@ -25,6 +25,7 @@ class poly_regression(object):
         # self.polynomial_basis_set=None
     def f(self,x):
         return 0.25*(x**3)+1.25*(x**2)-(3*x)-3 #find (f(x))
+        # return np.sin(np.pi*x/6)
     
     def g_bar(self,x):
         """Returns the fitted curve and the output of each basis function """
@@ -46,28 +47,12 @@ class poly_regression(object):
             # best_fit=best_fit*(k/(k+1)) + z/(k+1)  #Running average
         W=np.asarray(W)
         return W
-#%%
-K=2 #Number of datasets
-data_set_size=50
-noise_variance=10
-poly_degree=6
+#%% SETTING PARAMETERS 
+K=1000 #Number of datasets
+data_set_size=20
+noise_variance=0
+poly_degree=1
 fitter=poly_regression(K,data_set_size,noise_variance,poly_degree)
-#%%
-x=np.random.uniform(low=-6,high=6,size=(100)) #Generate x
-y_true=fitter.f(np.linspace(-6,6,10000))
-[y,basis_functions,basis_output]=fitter.g_bar(x)
-#%% PLOTS
-import matplotlib.pyplot as plt
-plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')
-colormap = plt.cm.get_cmap("Set1")
-for i in range(basis_output.shape[0]):
-    plt.scatter(x,basis_output[i,:],s=10,color=colormap(0),marker='x',label="Approximations" if i==0 else None)
-plt.scatter(np.linspace(-6,6,10000),y_true,s=0.05,color=colormap(1),label="True Function")
-
-plt.legend(prop={'size': 15},markerscale=10.)
-plt.title("The Function Plot with Normal Noise",fontsize=25)
-plt.xlabel('x',fontsize=25)
-plt.ylabel('y=f(x)',fontsize=25)
 #%% VARIANCE AND BIAS
 N=1000
 x=np.random.uniform(low=-6,high=6,size=(N)) #Generate x
@@ -80,3 +65,28 @@ temp=np.mean((basis_output-y_pred)**2,axis=0) #Over all data sets. Therefore len
 variance=np.mean(temp)
 average_out_of_sample_error=variance+bias
 print("The average out of sample error is {}".format(average_out_of_sample_error))
+
+#%% PLOTS 
+#TO GENERATE PLOTS
+plot_number_points=100
+x=np.random.uniform(low=-6,high=6,size=(plot_number_points)) #Generate x
+
+y_true=fitter.f(np.linspace(-6,6,10000))
+[y,basis_functions,basis_output]=fitter.g_bar(x)
+#CREATING THE PLOTS
+
+import matplotlib.pyplot as plt
+plt.figure(num=None, figsize=(18, 13), dpi=100, facecolor='w', edgecolor='b')
+colormap = plt.cm.get_cmap("Set1")
+for i in range(basis_output.shape[0]):
+    plt.scatter(x,basis_output[i,:],s=10,color='pink',marker='x',label="Approximations that are Averaged" if i==0 else None)
+plt.scatter(np.linspace(-6,6,10000),y_true,s=0.05,color=colormap(1),label="True Function")
+plt.scatter(x,y,s=5,color='black',label="Approximated Function",marker='^')
+plt.xlim((-6,6))
+# plt.ylim((-1.1,1.1))
+plt.legend(prop={'size': 15},markerscale=2.)
+plt.title("{} Degree Polynomial {} Datasets {} Points in Each (noise var={:0.2f})\n Bias={:0.2f} Variance={:0.2f} E_out={:0.2f} "
+          .format(poly_degree,K,data_set_size,noise_variance**2,bias,variance,average_out_of_sample_error),
+          fontsize=25)
+plt.xlabel('x',fontsize=25)
+plt.ylabel('y=f(x)',fontsize=25)
