@@ -15,13 +15,16 @@ varying sizes and use linear least squares to fit different polynomial functions
 
 import numpy as np
 
-#%% MAIN FUNCTION
+#%% FUNCTIONS AND CLASSES
 class poly_regression(object):
     def __init__(self,K,data_set_size,noise_variance,poly_degree):
         self.K=K
         self.data_set_size=data_set_size
         self.noise_variance=noise_variance
         self.poly_degree=poly_degree
+        self.bias=0
+        self.variance=0
+        self.average_out_of_sample_error=0
         # self.polynomial_basis_set=None
     def f(self,x):
         return 0.25*(x**3)+1.25*(x**2)-(3*x)-3 #find (f(x))
@@ -47,46 +50,68 @@ class poly_regression(object):
             # best_fit=best_fit*(k/(k+1)) + z/(k+1)  #Running average
         W=np.asarray(W)
         return W
+#% VARIANCE AND BIAS
+def var_bias(fitter,N):
+    x=np.random.uniform(low=-6,high=6,size=(N)) #Generate x
+    y_true=fitter.f(x)
+    [y_pred,_,basis_output]=fitter.g_bar(x)
+    #bias
+    bias=np.mean((y_true-y_pred)**2)#Over all query points N
+    #Variance
+    temp=np.mean((basis_output-y_pred)**2,axis=0) #Over all data sets. Therefore len(temp)=N
+    variance=np.mean(temp)
+    average_out_of_sample_error=variance+bias
+    fitter.average_out_of_sample_error=average_out_of_sample_error
+    fitter.bias=bias
+    fitter.variance=variance
+    return variance,bias,average_out_of_sample_error
+  
+#%  PLOTS 
+#TO GENERATE PLOTS
+import matplotlib.pyplot as plt
+def reg_plot(fitter,plot,**kwargs):
+    
+    subplots=kwargs.get("subplots",False)
+    plot_number_points=100
+    x=np.random.uniform(low=-6,high=6,size=(plot_number_points)) #Generate x
+
+    y_true=fitter.f(np.linspace(-6,6,10000))
+    [y,basis_functions,basis_output]=fitter.g_bar(x)
+    #CREATING THE PLOTS
+
+
+    # plt.figure(num=None, figsize=(18, 13), dpi=100, facecolor='w', edgecolor='b')
+    colormap = plt.cm.get_cmap("Set1")
+    for i in range(basis_output.shape[0]):
+        plot.scatter(x,basis_output[i,:],s=10,color='pink',marker='x',label="Approximations that are Averaged" if i==0 else None)
+    plot.scatter(np.linspace(-6,6,10000),y_true,s=0.05,color=colormap(1),label="True Function")
+    plot.scatter(x,y,s=5,color='black',label="Approximated Function",marker='^')
+    # plt.ylim((-1,1))
+    plt.ylim((-25,100))
+    plot.legend(prop={'size': 15},markerscale=2.)
+    plt.grid()
+    if subplots:
+        plot.set_title("{} Degree Polynomial \n Bias={:0.2f}   Variance={:0.2f}   E_out={:0.2f} "
+                  .format(fitter.poly_degree,fitter.bias,fitter.variance,fitter.average_out_of_sample_error),
+                  fontsize=15)
+    else:
+        plt.title("{} Degree Polynomial {} Datasets {} Points in Each (noise var={:0.2f})\n Bias={:0.2f} Variance={:0.2f} E_out={:0.2f} "
+                  .format(fitter.poly_degree,fitter.K,fitter.data_set_size,fitter.noise_variance**2,fitter.bias,
+                          fitter.variance,fitter.average_out_of_sample_error),fontsize=10)
+        plt.xlim((-6,6))
+        # plt.ylim((-1.1,1.1))
+        plt.xlabel('x',fontsize=25)
+        plt.ylabel('y=f(x)',fontsize=25)
 #%% SETTING PARAMETERS 
 K=1000 #Number of datasets
 data_set_size=20
 noise_variance=0
-poly_degree=1
-fitter=poly_regression(K,data_set_size,noise_variance,poly_degree)
-#%% VARIANCE AND BIAS
+poly_degree=2
+#%% Computing Variance and bias
+# fitter=poly_regression(K,data_set_size,noise_variance,poly_degree)
+# print("The average out of sample error is {}".format(average_out_of_sample_error))
 N=1000
-x=np.random.uniform(low=-6,high=6,size=(N)) #Generate x
-y_true=fitter.f(x)
-[y_pred,_,basis_output]=fitter.g_bar(x)
-#bias
-bias=np.mean((y_true-y_pred)**2)#Over all query points N
-#Variance
-temp=np.mean((basis_output-y_pred)**2,axis=0) #Over all data sets. Therefore len(temp)=N
-variance=np.mean(temp)
-average_out_of_sample_error=variance+bias
-print("The average out of sample error is {}".format(average_out_of_sample_error))
+# variance,bias,average_out_of_sample_error=var_bias(fitter,N)  
 
-#%% PLOTS 
-#TO GENERATE PLOTS
-plot_number_points=100
-x=np.random.uniform(low=-6,high=6,size=(plot_number_points)) #Generate x
-
-y_true=fitter.f(np.linspace(-6,6,10000))
-[y,basis_functions,basis_output]=fitter.g_bar(x)
-#CREATING THE PLOTS
-
-import matplotlib.pyplot as plt
-plt.figure(num=None, figsize=(18, 13), dpi=100, facecolor='w', edgecolor='b')
-colormap = plt.cm.get_cmap("Set1")
-for i in range(basis_output.shape[0]):
-    plt.scatter(x,basis_output[i,:],s=10,color='pink',marker='x',label="Approximations that are Averaged" if i==0 else None)
-plt.scatter(np.linspace(-6,6,10000),y_true,s=0.05,color=colormap(1),label="True Function")
-plt.scatter(x,y,s=5,color='black',label="Approximated Function",marker='^')
-plt.xlim((-6,6))
-# plt.ylim((-1.1,1.1))
-plt.legend(prop={'size': 15},markerscale=2.)
-plt.title("{} Degree Polynomial {} Datasets {} Points in Each (noise var={:0.2f})\n Bias={:0.2f} Variance={:0.2f} E_out={:0.2f} "
-          .format(poly_degree,K,data_set_size,noise_variance**2,bias,variance,average_out_of_sample_error),
-          fontsize=25)
-plt.xlabel('x',fontsize=25)
-plt.ylabel('y=f(x)',fontsize=25)
+#%% Plotting Results
+# reg_plot(fitter,plt)
