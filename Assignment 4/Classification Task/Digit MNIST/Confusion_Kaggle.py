@@ -48,12 +48,12 @@ def plot_confusion_matrix(cm,
     misclass = (100 - accuracy)
 
     # if cmap is None:
-        # cmap = plt.get_cmap('YlGnBu')
-    # cmap = plt.get_cmap('Greys')
+    #     cmap = plt.get_cmap('YlOrRd')
+    cmap = plt.get_cmap('YlOrRd')
     
     # plt.rcParams.update({'font.size': 20})
     plt.figure(num=None, figsize=(10, 10), dpi=150, facecolor='w', edgecolor='k')    
-    plt.imshow(cm, interpolation='nearest', cmap='Greys')
+    plt.imshow(cm, interpolation='nearest')
     plt.rcParams.update({'font.size': 15})
     plt.title(title,fontsize=25)
     plt.rcParams.update({'font.size': 20})
@@ -76,7 +76,7 @@ def plot_confusion_matrix(cm,
                      horizontalalignment="center",
                      color="black" if cm[i, j] > thresh else "white",fontsize=20)
         else:
-            plt.text(j, i, "{:,}".format(cm[i, j]),
+            plt.text(j, i, "{:0.2f}%".format(100*cm[i, j]),
                      horizontalalignment="center",
                      color="black" if cm[i, j] > thresh else "white",fontsize=20)
 

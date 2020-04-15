@@ -27,8 +27,8 @@ class poly_regression(object):
         self.average_out_of_sample_error=0
         # self.polynomial_basis_set=None
     def f(self,x):
-        return 0.25*(x**3)+1.25*(x**2)-(3*x)-3 #find (f(x))
-        # return np.sin(np.pi*x/6)
+        # return 0.25*(x**3)+1.25*(x**2)-(3*x)-3 #find (f(x))
+        return np.sin(np.pi*x/6)
     
     def g_bar(self,x):
         """Returns the fitted curve and the output of each basis function """
@@ -86,8 +86,8 @@ def reg_plot(fitter,plot,**kwargs):
         plot.scatter(x,basis_output[i,:],s=10,color='pink',marker='x',label="Approximations that are Averaged" if i==0 else None)
     plot.scatter(np.linspace(-6,6,10000),y_true,s=0.05,color=colormap(1),label="True Function")
     plot.scatter(x,y,s=5,color='black',label="Approximated Function",marker='^')
-    # plt.ylim((-1,1))
-    plt.ylim((-25,100))
+    plt.ylim((-1,1))
+    # plt.ylim((-25,100))
     plot.legend(prop={'size': 15},markerscale=2.)
     plt.grid()
     if subplots:

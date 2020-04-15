@@ -48,7 +48,7 @@ ovr.fit(x, y)
 ova.fit(x, y)
 # make predictions
 y_pred5=ovr.predict(x)
-y_pred6=ovr.predict(x)
+y_pred6=ova.predict(x)
 
 #%% CONFUSION
 from Confusion_Kaggle import plot_confusion_matrix
@@ -62,12 +62,12 @@ name6="\n Fischer's LDA  One Vs One \n MNIST Handwriting"
 Class_labels= [str(cla) for cla in np.unique(y)]
 
 
-k1=sklearn.metrics.confusion_matrix(y_pred1,y_test1,normalize=None)
-k2=sklearn.metrics.confusion_matrix(y_pred2,y_test2,normalize=None)
-k3=sklearn.metrics.confusion_matrix(y_pred3,y_test3,normalize=None)
-k4=sklearn.metrics.confusion_matrix(y_pred4,y_test4,normalize=None)
-k5=sklearn.metrics.confusion_matrix(y_pred5,y,normalize=None)
-k6=sklearn.metrics.confusion_matrix(y_pred6,y,normalize=None)
+k1=sklearn.metrics.confusion_matrix(y_pred1,y_test1,normalize='true')
+k2=sklearn.metrics.confusion_matrix(y_pred2,y_test2,normalize='true')
+k3=sklearn.metrics.confusion_matrix(y_pred3,y_test3,normalize='true')
+k4=sklearn.metrics.confusion_matrix(y_pred4,y_test4,normalize='true')
+k5=sklearn.metrics.confusion_matrix(y_pred5,y,normalize='true')
+k6=sklearn.metrics.confusion_matrix(y_pred6,y,normalize='true')
 
 plot_confusion_matrix(k1, Class_labels,title=name1)
 plot_confusion_matrix(k2, Class_labels,title=name2)

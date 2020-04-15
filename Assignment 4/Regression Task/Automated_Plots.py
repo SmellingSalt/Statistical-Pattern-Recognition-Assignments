@@ -13,30 +13,12 @@ import numpy as np
 #%% SETTING PARAMETERS 
 K=1000 #Number of datasets
 data_set_size=20
-noise_variance=0
+noise_variance=1
 #%% Subplots
-# def Plot_SubPlots(data,title_name,x_name,y_name):
-#     x_train=data[0]
-#     y_train=data[1]
-#     x_test=data[2]
-#     y_test=data[3]
-
-#     # PERCEPTRON
-#     percep_pred=pocket_percep(x_train,y_train)
-#     [error_percep,_]=linear_classify(percep_pred,x_test,y_test)
-#     MESH_plot(y_test,x_test,"Pocket Perceptron "+str(100-(np.round(100*error_percep,4)))+
-#               "% Accuracy",classifier_weights=percep_pred,subplot=axs[0])
-    
-#     # LINEAR LEAST SQUARES
-#     linear_pred=linear_least_squares(x_train,y_train)
-#     [error_lin,_]=linear_classify(linear_pred,x_test,y_test)
-#     MESH_plot(y_test,x_test,"Linear Least Squares"+str(100-(np.round(100*error_lin,4)))+
-#               "% Accuracy",classifier_weights=percep_pred,subplot=axs[1])
-    
-fig, axs = plt.subplots(1,2, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=True,sharey=True)
+fig, axs = plt.subplots(3,2, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=True,sharey=True)
 fig.subplots_adjust(hspace = .20, wspace=.001)
 axs = axs.ravel()
-poly_to_try=[0,1,9,5,4,7]#What degree polynomials to try fitting
+poly_to_try=[0,1,3,4,5,17]#What degree polynomials to try fitting
 # poly_to_try=[0,1]#What degree polynomials to try fitting
 poly_to_try=np.sort(poly_to_try)
 itr=0
