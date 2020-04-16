@@ -35,7 +35,7 @@ itr=0
 
 
 data=[x_train,y_train,x_test,y_test]
-Performance=mf.Eval(data)
+Performance=mf.Eval(data,opti_bayes)
 print(Performance)
 #%%
 mf.Plot_Figs(y_test,x_test,K,"10k Points")

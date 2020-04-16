@@ -317,13 +317,12 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
             range_of_points[i]=(np.sign(bay.dec_bound(test_points[i]))+1)/2
         # range_of_points=abs(range_of_points-1)
         classifier_regions=range_of_points.reshape(X1.shape) #Reshape it into a matrix
-        subplot.contourf(X1, X2,classifier_regions,alpha = 0.75,levels=[0],cmap = ListedColormap(('red', 'blue')))
-
+        cs=subplot.contourf(X1, X2,classifier_regions,alpha = 0.75,levels=[-1,0,1],cmap = ListedColormap(('red', 'blue')))
     else:
         range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True)    
         classifier_regions=range_of_points.reshape(X1.shape) #Reshape it into a matrix
         
-        subplot.contourf(X1, X2,classifier_regions,alpha = 0.75, cmap = ListedColormap(('red', 'blue')))
+        cs=subplot.contourf(X1, X2,classifier_regions,alpha = 0.75, cmap = ListedColormap(('red', 'blue')))
     #Bayes Decision Boundary
     if type(bay)!= int:
         lim1=X_set[:, 0].min()
@@ -349,6 +348,8 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
     # plt.xlabel('Age')
     # plt.ylabel('Estimated Salary')
     subplot.legend()
+    cs.collections[0].set_label("Baye's Boundary")
+    subplot.annotate('some text here',(1.4,1.6))
     # plt.show()
 #%% Define Decision Boundary for Bayes
 class Bayes_Dec_Boundary(object):
@@ -439,7 +440,7 @@ def Plot_SubPlots(data,title_name,x_name,y_name,opti_bayes):
     fig.text(0.5, 0.1, x_name, ha='center',fontsize=21)
     fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)         
 #%% EVALUATE CLASSIFIERS
-def Eval(data):
+def Eval(data,opti_bayes):
     x_train=data[0]
     y_train=data[1]
     x_test=data[2]
@@ -461,7 +462,10 @@ def Eval(data):
     [error_flda,_]=linear_classify(flda_pred,x_test,y_test)
     
     #BAYE'S CLASSIFIER
-    y_pred=gnb.fit(x_train, y_train).predict(x_test) #Populate the mesh grid    
+    y_pred=np.zeros(len(x_test))
+    for i in range(len(x_test)):
+        y_pred[i]=(np.sign(opti_bayes.dec_bound(x_test[i,:]))+1)/2
+    # y_pred=gnb.fit(x_train, y_train).predict(x_test) #Populate the mesh grid    
     error_baye=len(y_test[y_pred!=y_test])/len(y_test)
     
     return np.asarray([1-error_percep,1-error_lin,1-error_logistic,1-error_flda,1-error_baye])
