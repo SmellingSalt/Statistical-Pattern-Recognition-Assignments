@@ -42,15 +42,24 @@ def pocket_percep(x_train,y_train):
 #%% LINEAR CLASSIFY
 def linear_classify(W,x_test,y_test,**kwargs):
     only_classify=kwargs.get("only_classify",False)
+    logistic=kwargs.get('logistic',False)
     bias=np.ones((x_test.shape[0],1))
     x=np.concatenate((bias,x_test),axis=1) 
-    prediction=(np.sign(x@W)+1)/2 #Predict 0 or 1
+    if not logistic:
+        prediction=(np.sign(x@W)+1)/2 #Predict 0 or 1
+        # prediction(prediction)
+        prediction=np.squeeze(prediction)
+    else:
+        prediction=sigmoid(W,x) #Predict 0 or 1
+        prediction[prediction>=0.5]=1
+        prediction[prediction<0.5]=0
+        prediction=np.squeeze(prediction)
     if only_classify:
         return prediction
     else:
         y=y_test+0 #0 is mapped to 1 and 1 is mapped to -1    
-        y=np.expand_dims(y,axis=1)
-        error_vec=(y.T-prediction).T
+        # y=np.expand_dims(y,axis=1)
+        error_vec=(y-prediction)
         error=error_vec[error_vec!=0]
         error=len(error)        
         return error/len(y), prediction
@@ -96,9 +105,20 @@ def FLDA(x_train,y_train):
     x=x_train
     y=np.expand_dims(y,axis=1)
     x0=x_train[y_train==0]
-    x1=x0=x_train[y_train==1]
+    x1=x_train[y_train==1]
+    
     m0=np.mean(x_train[y_train==0],axis=0)
     m1=np.mean(x_train[y_train==1],axis=0)
+    
+    if x1.shape[0]==0: #No class 1 samples
+        temp=-np.ones((x_train.shape[1]+1,1))
+        temp[0]=1
+        return temp*(x0.min())*1e4
+    if x0.shape[0]==0: #No Class 0 samples
+        temp=np.ones((x_train.shape[1]+1,1))
+        temp[0]=-1
+        return temp*(x1.max())*1e4
+    
     Sw=0
     for i in range(x0.shape[0]):
         temp=np.expand_dims(x0[i]-m0,axis=1)
@@ -111,41 +131,14 @@ def FLDA(x_train,y_train):
     W=np.linalg.inv(Sw)@(m1-m0)
     z=x@W
     z0=z[y_train==0]
-    z1=z[y_train==1
-         ]
+    z1=z[y_train==1]
     m0=np.mean(z0,axis=0)
     m1=np.mean(z1,axis=0)
     b1=-(m0+m1)/2
     w1=[abs(b1),W]
     w1=np.hstack(w1)
     return w1
-    # std1=np.std(z0,axis=0)
-    # std2=np.std(z1,axis=0)
-    # # [b1,b2]=Gaussian_intersection(m0,m1,std1,std2)
-    # b1=-(m0+m1)/2
-    # # b1=0.0003
-    # w1=[abs(b1),W]
-    # w1=np.hstack(w1)
     
-    # w2=[-abs(b2),W]
-    # w2=np.hstack(w2)
-    
-    # b=np.ones((x_train.shape[0],1))
-    # x=np.concatenate((b,x_train),axis=1) 
-    
-    # prediction=(np.sign(x@w1)/2)+0.5 #Predict
-    # error_vec=(y.T-prediction).T
-    # error1=error_vec[error_vec!=0]
-    # error1=len(error1)  
-    
-    # prediction=(np.sign(x@w2)/2)+0.5 #Predict
-    # error_vec=(y.T-prediction).T
-    # error2=error_vec[error_vec!=0]
-    # error2=len(error2) 
-    
-    # if error1<error2:
-    #     return w1
-    # else: return w2
 #%% Function to find Baye's Decision Boundary
 def Bayesian_Boundary(m1,m2,std1,std2,x):
   a = 1/(2*std1*2) - 1/(2*std2*2)
@@ -351,7 +344,7 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
     cs.collections[0].set_label("Baye's Boundary")
     subplot.annotate('some text here',(1.4,1.6))
     # plt.show()
-#%% Define Decision Boundary for Bayes
+#%% Decision Boundary for Bayes
 class Bayes_Dec_Boundary(object):
     def __init__(self,m1,m2,c1,c2,p1,p2):
         """http://www.robots.ox.ac.uk/~az/lectures/est/lect56.pdf 
@@ -377,7 +370,12 @@ class Bayes_Dec_Boundary(object):
         y2=np.matmul(temp2,self.c2_inv)
         y2=np.matmul(y2,temp2)*0.5
         y=y1-y2+self.k
-        return y   
+        if self.p1==0:  #Only class 1 samples are present
+            return 1
+        elif self.p2==0: #Only class 0 samples are present:
+            return -1
+        else:
+            return y
 
 
 #%% SUBPLOTS   
@@ -404,7 +402,7 @@ def Plot_SubPlots(data,title_name,x_name,y_name,opti_bayes):
     
     # LOGISTIC REGRESSION
     log_pred=log_reg(x_train,y_train)
-    [error_logistic,_]=linear_classify(log_pred,x_test,y_test)
+    [error_logistic,_]=linear_classify(log_pred,x_test,y_test,logistic=True)
     MESH_plot(y_test,x_test,"Logistic Regression "+str(100-(np.round(100*error_logistic,4)))+
               "% Accuracy",classifier_weights=percep_pred,subplot=axs[2],bay=opti_bayes)
     
@@ -415,12 +413,6 @@ def Plot_SubPlots(data,title_name,x_name,y_name,opti_bayes):
               "% Accuracy",classifier_weights=percep_pred,subplot=axs[3],bay=opti_bayes)
     
     #Baye's PLOTS
-    # from sklearn.naive_bayes import GaussianNB 1
-    from sklearn import mixture
-    # gnb = GaussianNB() 1
-    gnb = mixture.GaussianMixture(n_components=2, covariance_type='full')
-    gnb.fit(x_train)
-    # y_pred=abs(gnb.predict(x_test)-1)
     y_pred=np.zeros(len(x_test))
     for i in range(len(x_test)):
             y_pred[i]=np.sign(opti_bayes.dec_bound(x_test[i]))
@@ -435,7 +427,7 @@ def Plot_SubPlots(data,title_name,x_name,y_name,opti_bayes):
     axbig = fig.add_subplot(gs[2, :])
         
     MESH_plot(y_test,x_test,"Baye's Classifier "+str(100-(np.round(100*error_baye,4)))+
-              "% Accuracy",classifier_weights=gnb,subplot=axbig,bay=opti_bayes)    
+              "% Accuracy",subplot=axbig,bay=opti_bayes)    
     fig.text(0.5, 0.9, title_name, ha='center',fontsize=21)
     fig.text(0.5, 0.1, x_name, ha='center',fontsize=21)
     fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)         
@@ -446,7 +438,7 @@ def Eval(data,opti_bayes):
     x_test=data[2]
     y_test=data[3]
     # PERCEPTRON
-    percep_pred=pocket_percep(x_train,y_train)
+    percep_pred=pocket_percep(x_train,y_train)    
     [error_percep,_]=linear_classify(percep_pred,x_test,y_test)
     
     # LINEAR LEAST SQUARES
@@ -455,7 +447,7 @@ def Eval(data,opti_bayes):
     
     # LOGISTIC REGRESSION
     log_pred=log_reg(x_train,y_train)
-    [error_logistic,_]=linear_classify(log_pred,x_test,y_test)
+    [error_logistic,_]=linear_classify(log_pred,x_test,y_test,logistic=True)
     
     # FISCHER LINEAR DISCRIMINANT ANALYSIS
     flda_pred=FLDA(x_train,y_train)
@@ -466,16 +458,18 @@ def Eval(data,opti_bayes):
     for i in range(len(x_test)):
         y_pred[i]=(np.sign(opti_bayes.dec_bound(x_test[i,:]))+1)/2
     # y_pred=gnb.fit(x_train, y_train).predict(x_test) #Populate the mesh grid    
-    error_baye=len(y_test[y_pred!=y_test])/len(y_test)
+    error=y_test[y_test!=y_pred]   
+    error_baye=len(error) /len(y_test)
     
+    [error_flda,_]=linear_classify(flda_pred,x_test,y_test)
     return np.asarray([1-error_percep,1-error_lin,1-error_logistic,1-error_flda,1-error_baye])
 #%% PLOT PERFORMANCE
-def Plot_Performance(data,priors,title_name):
-    a1=data[:,0]
-    a2=data[:,1]
-    a3=data[:,2]
-    a4=data[:,3]
-    a5=data[:,3]
+def Plot_Performance(data1,priors,title_name):
+    a1=data1[:,0]
+    a2=data1[:,1]
+    a3=data1[:,2]
+    a4=data1[:,3]
+    a5=data1[:,4]
     plots=[a1,a2,a3,a4,a5]
     plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')
     colormap = plt.cm.get_cmap("Set1")
@@ -484,6 +478,7 @@ def Plot_Performance(data,priors,title_name):
     for i in range(5):
         plt.plot(priors,plots[i],color=colormap(i),label=label[i])
     plt.yticks(np.arange(0,1+0.5,0.05))
+    plt.xticks(np.arange(0,1,0.05))
     plt.grid()
     plt.xlim(left=0)
     plt.ylim((0,1))
