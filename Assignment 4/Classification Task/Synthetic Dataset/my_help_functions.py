@@ -241,7 +241,7 @@ def get_random_cov(K,d):
     return np.dstack(cov)
 #%% PLOTS
 import matplotlib.pyplot as plt
-from matplotlib.patches import Ellipse
+# from matplotlib.patches import Ellipse
 def Plot_Figs(cluster_label_hist,data,K,title_name,**kwargs):
     """To simply perform a scatter plot, ignore hyper
         To plot the baye's decision boundary, make bayes=1
@@ -293,6 +293,9 @@ def Plot_Figs(cluster_label_hist,data,K,title_name,**kwargs):
             x = np.linspace(xmin, xmax)
             y=Bayesian_Boundary(m1,m2,std1,std2,x)
         plot.plot(x,y,color=colormap(k+1))
+        
+    plot.xlim(-5,5)
+    plot.ylim(-5,5)
     # plot.show()
     # print("Done")
 #%% MESH PLOTS
@@ -301,18 +304,41 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
     """X1 and X2 are the ranges for the x and y axes in 2D, . It is created 
     by finding the smallest and largest data  points in each feature vector"""
     classifier_weights=kwargs.get("classifier_weights",-1) #Only baye's classifier has no weights
+    bay=kwargs.get("bay",-1) #If the baye's decision boundary should be passed
     subplot=kwargs.get("subplot",plt) 
     
     X1, X2 = np.meshgrid(np.arange(start=X_set[:, 0].min()-1,stop=X_set[:, 0].max()+1,step=0.1),
                          np.arange(start=X_set[:,1].min()-1,stop=X_set[:,1].max()+1,step=0.1))
     test_points=np.array([X1.ravel(), X2.ravel()]).T
-    if type(classifier_weights)!=np.ndarray:
-        range_of_points=classifier_weights.predict(test_points) #Populate the mesh grid
+    if type(classifier_weights)!= np.ndarray:
+        # range_of_points=classifier_weights.predict(test_points)
+        range_of_points=np.zeros(len(test_points))
+        for i in range(len(test_points)):
+            range_of_points[i]=(np.sign(bay.dec_bound(test_points[i]))+1)/2
+        # range_of_points=abs(range_of_points-1)
+        classifier_regions=range_of_points.reshape(X1.shape) #Reshape it into a matrix
+        subplot.contourf(X1, X2,classifier_regions,alpha = 0.75,levels=[0],cmap = ListedColormap(('red', 'blue')))
+
     else:
-        range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True)
-    
-    classifier_regions=range_of_points.reshape(X1.shape) #Reshape it into a matrix
-    subplot.contourf(X1, X2,classifier_regions,alpha = 0.75, cmap = ListedColormap(('red', 'blue')))
+        range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True)    
+        classifier_regions=range_of_points.reshape(X1.shape) #Reshape it into a matrix
+        
+        subplot.contourf(X1, X2,classifier_regions,alpha = 0.75, cmap = ListedColormap(('red', 'blue')))
+    #Bayes Decision Boundary
+    if type(bay)!= int:
+        lim1=X_set[:, 0].min()
+        lim2=X_set[:, 0].max()
+        xlist = np.linspace(lim1,lim2, 100)
+        ylist = np.linspace(lim1,lim2, 100)
+        x1, x2 = np.meshgrid(xlist, ylist)  
+        temp=np.zeros(len(test_points))
+        for i in range(len(test_points)):
+            temp[i]=bay.dec_bound(test_points[i])   
+            
+        temp=np.expand_dims(np.asarray(temp),axis=1)
+        temp=temp.reshape(X1.shape)
+        
+        subplot.contour(X1, X2,temp,levels=[0])
     plt.xlim(X1.min(), X1.max())
     plt.ylim(X2.min(), X2.max())
     for i, j in enumerate(np.unique(y_set)):
@@ -324,11 +350,37 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
     # plt.ylabel('Estimated Salary')
     subplot.legend()
     # plt.show()
-    
+#%% Define Decision Boundary for Bayes
+class Bayes_Dec_Boundary(object):
+    def __init__(self,m1,m2,c1,c2,p1,p2):
+        """http://www.robots.ox.ac.uk/~az/lectures/est/lect56.pdf 
+        slide number 35"""
+        self.m1=m1#mean 1
+        self.m2=m2#mean 2
+        self.c1=c1#Covariance 1
+        self.c2=c2#Covariance 2
+        self.p1=p1#Prior 1
+        self.p2=p2#Prior 2
+        self.c1_inv=np.linalg.inv(self.c1)
+        self.c2_inv=np.linalg.inv(self.c2)
+        self.k=0.5*(-np.log(np.linalg.det(self.c1))
+        +np.log(np.linalg.det(self.c2)))+np.log(self.p1/self.p2)
+        
+    def dec_bound(self,x):
+        #Breaking up the computation to avoid memory issues
+        temp1=(x-self.m1)
+        temp2=(x-self.m2)
+        y1=np.matmul(temp1,self.c1_inv)
+        y1=np.matmul(y1,temp1)*0.5
+        
+        y2=np.matmul(temp2,self.c2_inv)
+        y2=np.matmul(y2,temp2)*0.5
+        y=y1-y2+self.k
+        return y   
 
 
 #%% SUBPLOTS   
-def Plot_SubPlots(data,title_name,x_name,y_name):
+def Plot_SubPlots(data,title_name,x_name,y_name,opti_bayes):
     x_train=data[0]
     y_train=data[1]
     x_test=data[2]
@@ -341,30 +393,38 @@ def Plot_SubPlots(data,title_name,x_name,y_name):
     percep_pred=pocket_percep(x_train,y_train)
     [error_percep,_]=linear_classify(percep_pred,x_test,y_test)
     MESH_plot(y_test,x_test,"Pocket Perceptron "+str(100-(np.round(100*error_percep,4)))+
-              "% Accuracy",classifier_weights=percep_pred,subplot=axs[0])
+              "% Accuracy",classifier_weights=percep_pred,subplot=axs[0],bay=opti_bayes)
     
     # LINEAR LEAST SQUARES
     linear_pred=linear_least_squares(x_train,y_train)
     [error_lin,_]=linear_classify(linear_pred,x_test,y_test)
     MESH_plot(y_test,x_test,"Linear Least Squares"+str(100-(np.round(100*error_lin,4)))+
-              "% Accuracy",classifier_weights=percep_pred,subplot=axs[1])
+              "% Accuracy",classifier_weights=percep_pred,subplot=axs[1],bay=opti_bayes)
     
     # LOGISTIC REGRESSION
     log_pred=log_reg(x_train,y_train)
     [error_logistic,_]=linear_classify(log_pred,x_test,y_test)
     MESH_plot(y_test,x_test,"Logistic Regression "+str(100-(np.round(100*error_logistic,4)))+
-              "% Accuracy",classifier_weights=percep_pred,subplot=axs[2])
+              "% Accuracy",classifier_weights=percep_pred,subplot=axs[2],bay=opti_bayes)
     
     # FISCHER LINEAR DISCRIMINANT ANALYSIS
     flda_pred=FLDA(x_train,y_train)
     [error_flda,_]=linear_classify(flda_pred,x_test,y_test)
     MESH_plot(y_test,x_test,"Fischer's LDA "+str(100-(np.round(100*error_flda,4)))+
-              "% Accuracy",classifier_weights=percep_pred,subplot=axs[3])
+              "% Accuracy",classifier_weights=percep_pred,subplot=axs[3],bay=opti_bayes)
     
     #Baye's PLOTS
-    from sklearn.naive_bayes import GaussianNB
-    gnb = GaussianNB()
-    y_pred=gnb.fit(x_train, y_train).predict(x_test) #Populate the mesh grid    
+    # from sklearn.naive_bayes import GaussianNB 1
+    from sklearn import mixture
+    # gnb = GaussianNB() 1
+    gnb = mixture.GaussianMixture(n_components=2, covariance_type='full')
+    gnb.fit(x_train)
+    # y_pred=abs(gnb.predict(x_test)-1)
+    y_pred=np.zeros(len(x_test))
+    for i in range(len(x_test)):
+            y_pred[i]=np.sign(opti_bayes.dec_bound(x_test[i]))
+    y_pred=(y_pred+1)/2
+    # 1 y_pred=gnb.fit(x_train, y_train).predict(x_test) #Populate the mesh grid    
     error_baye=len(y_test[y_pred!=y_test])/len(y_test)
 
     gs = axs[4].get_gridspec()
@@ -374,7 +434,7 @@ def Plot_SubPlots(data,title_name,x_name,y_name):
     axbig = fig.add_subplot(gs[2, :])
         
     MESH_plot(y_test,x_test,"Baye's Classifier "+str(100-(np.round(100*error_baye,4)))+
-              "% Accuracy",classifier_weights=gnb.fit(x_train, y_train),subplot=axbig)    
+              "% Accuracy",classifier_weights=gnb,subplot=axbig,bay=opti_bayes)    
     fig.text(0.5, 0.9, title_name, ha='center',fontsize=21)
     fig.text(0.5, 0.1, x_name, ha='center',fontsize=21)
     fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)         
@@ -401,8 +461,6 @@ def Eval(data):
     [error_flda,_]=linear_classify(flda_pred,x_test,y_test)
     
     #BAYE'S CLASSIFIER
-    from sklearn.naive_bayes import GaussianNB
-    gnb = GaussianNB()
     y_pred=gnb.fit(x_train, y_train).predict(x_test) #Populate the mesh grid    
     error_baye=len(y_test[y_pred!=y_test])/len(y_test)
     
@@ -429,36 +487,3 @@ def Plot_Performance(data,priors,title_name):
     plt.legend()
     plt.ylabel("Accuracy")
     plt.xlabel("Prior Probability for class 0")
-#%% TO DRAW ELLIPSE
-def draw_ellipse(position, covariance, ax=None, **kwargs):
-# taken from
-# https://github.com/DFoly/Gaussian-Mixture-Modelling/blob/master/gaussian-mixture-model.ipynb
-    """Draw an ellipse with a given position and covariance"""
-    ax = ax or plt.gca()
-    
-    # Convert covariance to principal axes
-    if covariance.shape == (2, 2):
-        U, s, Vt = np.linalg.svd(covariance)
-        angle = np.degrees(np.arctan2(U[1, 0], U[0, 0]))
-        width, height = 2 * np.sqrt(s)
-    else:
-        angle = 0
-        width, height = 2 * np.sqrt(covariance)
-    
-    # Draw the Ellipse
-    for nsig in range(1, 4):
-        ax.add_patch(Ellipse(position, nsig * width, nsig * height,
-                             angle, **kwargs))
-#%% PLOT MEANS OF MNIST        
-def Plot_Means(means):
-    
-    [Vec_len,K]=np.shape(means)
-    side_len=int(np.sqrt(Vec_len))
-    
-    
-    plt.figure(num=None, figsize=(18, 12), dpi=100, facecolor='w', edgecolor='k')    
-    # plt.plot(range(1,iterations+1),liklihood_history)   
-    for k in range(K):  
-        image=np.reshape(means[:,k],(side_len,side_len))
-        plt.imshow(image)
-        plt.show()

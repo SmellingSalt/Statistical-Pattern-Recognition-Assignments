@@ -120,33 +120,6 @@ def FLDA(x_train,y_train):
     w1=[abs(b1),W]
     w1=np.hstack(w1)
     return w1
-    # std1=np.std(z0,axis=0)
-    # std2=np.std(z1,axis=0)
-    # # [b1,b2]=Gaussian_intersection(m0,m1,std1,std2)
-    # b1=-(m0+m1)/2
-    # # b1=0.0003
-    # w1=[abs(b1),W]
-    # w1=np.hstack(w1)
-    
-    # w2=[-abs(b2),W]
-    # w2=np.hstack(w2)
-    
-    # b=np.ones((x_train.shape[0],1))
-    # x=np.concatenate((b,x_train),axis=1) 
-    
-    # prediction=(np.sign(x@w1)/2)+0.5 #Predict
-    # error_vec=(y.T-prediction).T
-    # error1=error_vec[error_vec!=0]
-    # error1=len(error1)  
-    
-    # prediction=(np.sign(x@w2)/2)+0.5 #Predict
-    # error_vec=(y.T-prediction).T
-    # error2=error_vec[error_vec!=0]
-    # error2=len(error2) 
-    
-    # if error1<error2:
-    #     return w1
-    # else: return w2
 #%% Function to find Baye's Decision Boundary
 def Bayesian_Boundary(m1,m2,std1,std2,x):
   a = 1/(2*std1*2) - 1/(2*std2*2)
@@ -209,12 +182,6 @@ def get_MNIST(req_class):
     train_df_data = np.concatenate(train_com, axis = 0)
     # train_df_data = np.concatenate([np.zeros((train_df_lab.shape[0], 1), dtype=int), train_df_data], axis = 1)
     [train_sff,train_labs] = shuffle(train_df_data, train_df_lab)     # Shuffle the data and label (to properly train the network)
-    
-    # labels=train_sff[:,1]
-    # train_sff=train_sff[:,1:]
-    # mean=np.mean(train_sff,axis=1)
-    # std=np.std(train_sff,axis=1)
-
     return train_sff,train_labs
 #%% SHUFFLE DATASET
 import random
