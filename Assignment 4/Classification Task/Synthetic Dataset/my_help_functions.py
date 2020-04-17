@@ -54,6 +54,8 @@ def linear_classify(W,x_test,y_test,**kwargs):
             prediction=sigmoid(W,x) #Predict 0 or 1
             prediction[prediction>=0.5]=1
             prediction[prediction<0.5]=0
+            # prediction=abs(prediction-1)
+            
             prediction=np.squeeze(prediction)
         else:
             prediction=(np.sign(x_test@W[1:]-W[0])+1)/2
@@ -333,7 +335,7 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
         x1, x2 = np.meshgrid(xlist, ylist)  
         temp=np.zeros(len(test_points))
         for i in range(len(test_points)):
-            temp[i]=bay.dec_bound(test_points[i])   
+            temp[i]=bay.dec_bound(test_points[i])
             
         temp=np.expand_dims(np.asarray(temp),axis=1)
         temp=temp.reshape(X1.shape)
@@ -351,8 +353,8 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
     subplot.legend()
     cs.collections[0].set_label("Baye's Boundary")
     if type(classifier_weights)== np.ndarray:
-        subplot.annotate('Optimal Baye\'s \n Classifier' ,(1.5,3.7))
-        subplot.annotate('Optimal Baye\'s \n Classifier' ,(1,2.1))
+        subplot.annotate('Optimal Baye\'s \n Classifier' ,(2.8,4.1))
+        subplot.annotate('Optimal Baye\'s \n Classifier' ,(-4,-3.5))
     # plt.show()
 #%% Decision Boundary for Bayes
 class Bayes_Dec_Boundary(object):

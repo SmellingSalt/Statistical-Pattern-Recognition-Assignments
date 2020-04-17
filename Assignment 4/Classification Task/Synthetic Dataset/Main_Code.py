@@ -38,15 +38,16 @@ data=[x_train,y_train,x_test,y_test]
 #%%
 mf.Plot_Figs(y_test,x_test,K,"10k Points")
 #%%
-mf.Plot_SubPlots(data,"Decision Boundaries for Synthetic Data: 2D Gaussian","x1","x2",opti_bayes)
+# mf.Plot_SubPlots(data,"Decision Boundaries on Training Set: 2D Gaussian","x1","x2",opti_bayes)
 #%%
 from Confusion_Kaggle import plot_confusion_matrix
 import sklearn.metrics
-name1="\n Perceptron"
-name2="\n Least Squares"
-name3="\n Logistic Regression"
-name4="\n Fischer's LDA"
-name5="\n Baye's Classifier"
+typ=" Training Set"
+name1="\n Perceptron"+typ
+name2="\n Least Squares"+typ
+name3="\n Logistic Regression"+typ
+name4="\n Fischer's LDA"+typ
+name5="\n Baye's Classifier"+typ
 
 # y_test=y_train
 Class_labels= ["Class 0", "Class 1"]
