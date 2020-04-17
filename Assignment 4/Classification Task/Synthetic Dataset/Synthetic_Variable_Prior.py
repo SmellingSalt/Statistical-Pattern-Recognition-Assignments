@@ -18,20 +18,23 @@ means=[np.zeros(d), 1+np.zeros(d)]
 means=np.squeeze(np.asarray(means)).T
 # covariance=[[[2,0],[0,2]],[[0.5,0],[0,2]]]
 # covariance=covariance=np.dstack([np.eye(d),[[1, 0.9],[0.9, 1]]])
-covariance=np.dstack([np.eye(d),np.eye(d)])
+covariance=np.dstack([np.eye(d)+1,np.eye(d)])
 #%% OPTIMAL CLASSIFIER
 #%% Performance Graphs
 performance=[]
-priors=np.arange(0,1+0.05,0.05) #Prior probability of selecting a distribution
+priors=np.arange(0+0.05,1,0.05) #Prior probability of selecting a distribution
 itr=0
 for p in priors:
     opti_bayes=mf.Bayes_Dec_Boundary(means[:,0],means[:,1],covariance[:,:,0],covariance[:,:,1],p,1-p)
     [y_train, x_train]=mf.Get_Sythetic(K,d,N_train, priors=[p,1-p],means=means,cov=covariance)
-    [y_test, x_test]=mf.Get_Sythetic(K,d,N_test, priors=[0.5,0.5],means=means,cov=covariance)
-    
+    [y_test, x_test]=mf.Get_Sythetic(K,d,N_test, priors=[[p,1-p]],means=means,cov=covariance)
+    opti_bayes.clf.fit(x_train,y_train)
     # data=[x_train,y_train,x_test,y_test]
     data=[x_train,y_train,x_train,y_train]
-    temp=mf.Eval(data,opti_bayes)
+    temp1=mf.Eval(data,opti_bayes)
+    temp=temp1-y_train
+    temp[temp!=0]=1
+    temp=1-np.asarray(np.mean(temp,axis=1),dtype=float)
     performance.append(temp)
     itr+=1
     if itr==9:

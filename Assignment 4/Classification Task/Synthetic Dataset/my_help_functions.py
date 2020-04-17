@@ -311,8 +311,13 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
     if type(classifier_weights)!= np.ndarray:
         # range_of_points=classifier_weights.predict(test_points)
         range_of_points=np.zeros(len(test_points))
-        for i in range(len(test_points)):
-            range_of_points[i]=(np.sign(bay.dec_bound(test_points[i]))+1)/2
+        
+        
+        # for i in range(len(test_points)):
+        #     range_of_points[i]=(np.sign(bay.dec_bound(test_points[i]))+1)/2
+        range_of_points=bay.dec_bound(test_points)
+            
+            
         # range_of_points=abs(range_of_points-1)
         classifier_regions=range_of_points.reshape(X1.shape) #Reshape it into a matrix
         cs=subplot.contourf(X1, X2,classifier_regions,alpha = 0.75,levels=[-1,0,1],cmap = ListedColormap(('red', 'blue')))
@@ -334,8 +339,9 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
         ylist = np.linspace(lim1,lim2, 100)
         x1, x2 = np.meshgrid(xlist, ylist)  
         temp=np.zeros(len(test_points))
-        for i in range(len(test_points)):
-            temp[i]=bay.dec_bound(test_points[i])
+        # for i in range(len(test_points)):
+        #     temp[i]=bay.dec_bound(test_points[i])
+        temp=bay.dec_bound(test_points)
             
         temp=np.expand_dims(np.asarray(temp),axis=1)
         temp=temp.reshape(X1.shape)
@@ -353,8 +359,9 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
     subplot.legend()
     cs.collections[0].set_label("Baye's Boundary")
     if type(classifier_weights)== np.ndarray:
-        subplot.annotate('Optimal Baye\'s \n Classifier' ,(2.8,4.1))
-        subplot.annotate('Optimal Baye\'s \n Classifier' ,(-4,-3.5))
+        # subplot.annotate('Optimal Baye\'s \n Classifier' ,(2.8,4.1))
+        subplot.annotate('Optimal Baye\'s \n Classifier' ,(2,-4))
+        # n=1
     # plt.show()
 #%% Decision Boundary for Bayes
 class Bayes_Dec_Boundary(object):
@@ -372,22 +379,33 @@ class Bayes_Dec_Boundary(object):
         self.k=0.5*(-np.log(np.linalg.det(self.c1))
         +np.log(np.linalg.det(self.c2)))+np.log(self.p1/self.p2)
         
+        from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+        self.clf = QuadraticDiscriminantAnalysis(priors=[self.p1,self.p2])
+        
+        # self.A=np.linalg.inv(self.c1-self.c2)
+        # self.B=2*(self.c2_inv*self.m2-self.c1_inv*self.m1).T
+        # self.D=(self.m1.t@self.c1_inv@self.m1-self.m2.t@self.c2_inv@self.m2)
+        # self.D=self.D+np.log(np.linalg.det(self.c1)/np.linalg.det(self.c1))+np.log(self.p1/self.p2)
+        
     def dec_bound(self,x):
         #Breaking up the computation to avoid memory issues
-        temp1=(x-self.m1)
-        temp2=(x-self.m2)
-        y1=np.matmul(temp1,self.c1_inv)
-        y1=np.matmul(y1,temp1)*0.5
+        # temp1=(x-self.m1)
+        # temp2=(x-self.m2)
+        # y1=np.matmul(temp1,self.c1_inv)
+        # y1=np.matmul(y1,temp1)
         
-        y2=np.matmul(temp2,self.c2_inv)
-        y2=np.matmul(y2,temp2)*0.5
-        y=y1-y2+self.k
-        if self.p1==0:  #Only class 1 samples are present
-            return 1
-        elif self.p2==0: #Only class 0 samples are present:
-            return -1
-        else:
-            return y
+        # y2=np.matmul(temp2,self.c2_inv)
+        # y2=np.matmul(y2,temp2)
+        # y=y1-y2+self.k
+        # if self.p1==0:  #Only class 1 samples are present
+        #     return 1
+        # elif self.p2==0: #Only class 0 samples are present:
+        #     return -1
+        # else:
+
+
+            
+            return self.clf.predict(x)
 
 
 #%% SUBPLOTS   
@@ -418,12 +436,12 @@ def Plot_SubPlots(data,title_name,x_name,y_name,opti_bayes):
     MESH_plot(y_test,x_test,"Fischer's LDA ",classifier_weights=flda_pred,subplot=axs[3],bay=opti_bayes,Fisher_or_Log="Fischer")
     
     #Baye's PLOTS
-    y_pred=np.zeros(len(x_test))
-    for i in range(len(x_test)):
-            y_pred[i]=np.sign(opti_bayes.dec_bound(x_test[i]))
-    y_pred=(y_pred+1)/2
+    # y_pred=np.zeros(len(x_test))
+    # for i in range(len(x_test)):
+    #         y_pred[i]=np.sign(opti_bayes.dec_bound(x_test[i]))
+    # y_pred=abs(np.sign(y_pred)+1)/2
     # 1 y_pred=gnb.fit(x_train, y_train).predict(x_test) #Populate the mesh grid    
-
+    y_pred=np.sign(opti_bayes.dec_bound(x_test))
     gs = axs[4].get_gridspec()
     # remove the underlying axes
     for ax in axs[4:]:
@@ -457,13 +475,19 @@ def Eval(data,opti_bayes):
     [error_flda,y4]=linear_classify(flda_pred,x_test,y_test,fischer=True)
     
     #BAYE'S CLASSIFIER
-    y5=np.zeros(len(x_test))
-    for i in range(len(x_test)):
-        y5[i]=(np.sign(opti_bayes.dec_bound(x_test[i,:]))+1)/2
+    # y5=np.zeros(len(x_test))
+    # for i in range(len(x_test)):
+    #     y5[i]=(np.sign(opti_bayes.dec_bound(x_test[i,:]))+1)/2
+    y5=opti_bayes.dec_bound(x_test)
     # y_pred=gnb.fit(x_train, y_train).predict(x_test) #Populate the mesh grid    
     error=y_test[y_test!=y5]   
     error_baye=len(error) /len(y_test)
     
+    from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+    clf = QuadraticDiscriminantAnalysis(priors=[opti_bayes.p1,opti_bayes.p2])
+    clf.fit(x_train, y_train)
+    y5=clf.predict(x_test)
+
     # return np.asarray([1-error_percep,1-error_lin,1-error_logistic,1-error_flda,1-error_baye])
     return y1,y2,y3,y4,y5
 #%% PLOT PERFORMANCE

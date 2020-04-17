@@ -11,7 +11,7 @@ K=2 #How many distributions
 N_train=2000 #How many Samples
 N_test=10000 #How many Samples
 d=2 #How many dimensions
-p=0.5
+p=0.3
 
 means=[np.zeros(d),np.ones(d)]
 means=np.squeeze(np.asarray(means)).T
@@ -19,12 +19,12 @@ covariance=np.dstack(([[1, -0.5],[-0.5, 1]],[[1, 0.9],[0.9, 1]]))
 # covariance=np.dstack((np.eye(d),np.eye(d)))
 #%% Creating the bayes object
 opti_bayes=mf.Bayes_Dec_Boundary(means[:,0],means[:,1],covariance[:,:,0],covariance[:,:,1],p,1-p)
-t=opti_bayes.dec_bound([0,10])
 #%% Performance Graphs
 itr=0
 
 [y_train, x_train]=mf.Get_Sythetic(K,d,N_train, priors=[p,1-p],means=means,cov=covariance)
 [y_test, x_test]=mf.Get_Sythetic(K,d,N_test, priors=[p,1-p],means=means,cov=covariance)
+opti_bayes.clf.fit(x_train,y_train)
 # from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 # lda = LinearDiscriminantAnalysis()
@@ -38,7 +38,7 @@ data=[x_train,y_train,x_test,y_test]
 #%%
 mf.Plot_Figs(y_test,x_test,K,"10k Points")
 #%%
-# mf.Plot_SubPlots(data,"Decision Boundaries on Training Set: 2D Gaussian","x1","x2",opti_bayes)
+mf.Plot_SubPlots(data,"Decision Boundaries on Training Set: 2D Gaussian","x1","x2",opti_bayes)
 #%%
 from Confusion_Kaggle import plot_confusion_matrix
 import sklearn.metrics
