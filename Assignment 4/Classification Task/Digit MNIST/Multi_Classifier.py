@@ -23,6 +23,8 @@ def OneVOne(x,y,**kwargs):
     x_train=np.split(x_train[excess:],how_many_batches)
     y_train=np.split(y_train[excess:],how_many_batches)
     
+    # x_test=x[excess:]
+    # y_test=y[excess:]
     x_test=x[training_size-excess:]
     y_test=y[training_size-excess:]
     
@@ -95,6 +97,8 @@ def OneVAll(x,y,**kwargs):
     x_train=np.split(x_train[excess:],how_many_batches)
     y_train=np.split(y_train[excess:],how_many_batches)
     
+    # x_test=x[excess:]
+    # y_test=y[excess:]
     x_test=x[training_size-excess:]
     y_test=y[training_size-excess:]
     

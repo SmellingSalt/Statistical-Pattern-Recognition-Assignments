@@ -11,14 +11,14 @@ from Regression_Generator import  var_bias as var_bias
 from Regression_Generator import  reg_plot as reg_plot
 import numpy as np
 #%% SETTING PARAMETERS 
-K=1000 #Number of datasets
-data_set_size=20
-noise_variance=1
+K=200 #Number of datasets
+data_set_size=1000
+noise_variance=10
 #%% Subplots
-fig, axs = plt.subplots(3,2, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=True,sharey=True)
+fig, axs = plt.subplots(2,2, figsize=(20, 20), facecolor='w', edgecolor='k',sharex=True,sharey=True)
 fig.subplots_adjust(hspace = .20, wspace=.001)
 axs = axs.ravel()
-poly_to_try=[0,1,3,4,5,17]#What degree polynomials to try fitting
+poly_to_try=[0,1,3,4]#What degree polynomials to try fitting
 # poly_to_try=[0,1]#What degree polynomials to try fitting
 poly_to_try=np.sort(poly_to_try)
 itr=0

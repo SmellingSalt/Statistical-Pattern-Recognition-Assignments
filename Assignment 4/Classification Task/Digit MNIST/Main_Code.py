@@ -31,7 +31,7 @@ print("\n One vs One: Perceptron")
 [y_pred3,y_test3]=OwO(x,y,percep=1)
 print("\n One vs One: Logistic Regression")
 [y_pred4,y_test4]=OwO(x,y)
-#%% FISCHER'S LDA Sci-kit learn's
+# % FISCHER'S LDA Sci-kit learn'ss
 print("\n Running sci-kit learn's FLDA")
 # lda.fit(x,y)
 # ylda=lda.predict(x)
@@ -50,15 +50,16 @@ ova.fit(x, y)
 y_pred5=ovr.predict(x)
 y_pred6=ova.predict(x)
 
-#%% CONFUSION
+#% CONFUSION
 from Confusion_Kaggle import plot_confusion_matrix
 import sklearn
-name1="\n Perceptron One Vs All \n MNIST Handwriting"
-name2="\n Logistic Regression One Vs All \n MNIST Handwriting"
-name3="\n Perceptron One Vs One \n MNIST Handwriting"
-name4="\n Logistic Regression One Vs One \n MNIST Handwriting"
-name5="\n Fischer's LDA One Vs All \n MNIST Handwriting"
-name6="\n Fischer's LDA  One Vs One \n MNIST Handwriting"
+typ=" Testing Set"
+name1="\n Perceptron One Vs All \n MNIST Handwriting"+typ
+name2="\n Logistic Regression One Vs All \n MNIST Handwriting"+typ
+name3="\n Perceptron One Vs One \n MNIST Handwriting"+typ
+name4="\n Logistic Regression One Vs One \n MNIST Handwriting"+typ
+name5="\n Fischer's LDA One Vs All \n MNIST Handwriting"+typ
+name6="\n Fischer's LDA  One Vs One \n MNIST Handwriting"+typ
 Class_labels= [str(cla) for cla in np.unique(y)]
 
 

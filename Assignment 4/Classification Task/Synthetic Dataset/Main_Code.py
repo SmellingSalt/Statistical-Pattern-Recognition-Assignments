@@ -10,15 +10,15 @@ import numpy as np
 K=2 #How many distributions
 N_train=5000 #How many Samples
 N_test=10000 #How many Samples
-d=10 #How many dimensions
+d=2 #How many dimensions
 p=0.5
 
-means=[np.zeros(d),np.ones(d)]
-# means=[[0,3],[3,2]]
+means=[np.zeros(d),np.zeros(d)]
+means=[[0,3],[3,2]]
 means=np.squeeze(np.asarray(means)).T
-# covariance=np.dstack(([[1, -0.5],[-0.5, 1]],[[1, 0.9],[0.9, 1]]))
-# covariance=np.dstack(([[1, 0.9],[0.9, 1]],[[1, 0],[0, 1]]))
-covariance=np.dstack((np.eye(d),np.eye(d)))
+covariance=np.dstack(([[1, -0.5],[-0.5, 1]],[[1, 0.9],[0.9, 1]]))
+covariance=np.dstack(([[1, 0.9],[0.9, 1]],[[1, 0],[0, 1]]))
+# covariance=np.dstack((np.eye(d),np.eye(d)))
 #%% Creating the bayes object
 opti_bayes=mf.Bayes_Dec_Boundary(means[:,0],means[:,1],covariance[:,:,0],covariance[:,:,1],p,1-p)
 #%% Performance Graphs

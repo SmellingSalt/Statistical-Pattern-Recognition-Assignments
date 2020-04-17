@@ -27,8 +27,8 @@ class poly_regression(object):
         self.average_out_of_sample_error=0
         # self.polynomial_basis_set=None
     def f(self,x):
-        # return 0.25*(x**3)+1.25*(x**2)-(3*x)-3 #find (f(x))
-        return np.sin(np.pi*x/6)
+        return 0.25*(x**3)+1.25*(x**2)-(3*x)-3 #find (f(x))
+        # return np.sin(np.pi*x/6)
     
     def g_bar(self,x):
         """Returns the fitted curve and the output of each basis function """
@@ -60,7 +60,7 @@ def var_bias(fitter,N):
     #Variance
     temp=np.mean((basis_output-y_pred)**2,axis=0) #Over all data sets. Therefore len(temp)=N
     variance=np.mean(temp)
-    average_out_of_sample_error=variance+bias
+    average_out_of_sample_error=variance+bias+fitter.noise_variance
     fitter.average_out_of_sample_error=average_out_of_sample_error
     fitter.bias=bias
     fitter.variance=variance
@@ -86,16 +86,16 @@ def reg_plot(fitter,plot,**kwargs):
         plot.scatter(x,basis_output[i,:],s=10,color='pink',marker='x',label="Approximations that are Averaged" if i==0 else None)
     plot.scatter(np.linspace(-6,6,10000),y_true,s=0.05,color=colormap(1),label="True Function")
     plot.scatter(x,y,s=5,color='black',label="Approximated Function",marker='^')
-    plt.ylim((-1,1))
-    # plt.ylim((-25,100))
+    # plt.ylim((-1,1))
+    plt.ylim((-25,100))
     plot.legend(prop={'size': 15},markerscale=2.)
     plt.grid()
     if subplots:
-        plot.set_title("{} Degree Polynomial \n Bias={:0.2f}   Variance={:0.2f}   E_out={:0.2f} "
+        plot.set_title("{} Degree Polynomial \n Bias^2={:0.2f}   Variance={:0.2f}   E_out={:0.2f} "
                   .format(fitter.poly_degree,fitter.bias,fitter.variance,fitter.average_out_of_sample_error),
                   fontsize=15)
     else:
-        plt.title("{} Degree Polynomial {} Datasets {} Points in Each (noise var={:0.2f})\n Bias={:0.2f} Variance={:0.2f} E_out={:0.2f} "
+        plt.title("{} Degree Polynomial {} Datasets {} Points in Each (noise var={:0.2f})\n Bias^2={:0.2f} Variance={:0.2f} E_out={:0.2f} "
                   .format(fitter.poly_degree,fitter.K,fitter.data_set_size,fitter.noise_variance**2,fitter.bias,
                           fitter.variance,fitter.average_out_of_sample_error),fontsize=10)
         plt.xlim((-6,6))
