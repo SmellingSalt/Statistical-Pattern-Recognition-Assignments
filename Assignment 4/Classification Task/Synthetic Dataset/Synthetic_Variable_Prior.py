@@ -9,9 +9,9 @@ Created on Thu Apr  9 18:15:23 2020
 import my_help_functions as mf
 import numpy as np
 K=2 #How many distributions
-N_train=2000 #How many Samples
-N_test=10000 #How many Samples
-d=2 #How many dimensions
+N_train=5000 #How many Samples
+N_test=1000 #How many Samples
+d=2#How many dimensions
 # p=0.5
 
 means=[np.zeros(d), 1+np.zeros(d)]
@@ -29,20 +29,17 @@ for p in priors:
     [y_train, x_train]=mf.Get_Sythetic(K,d,N_train, priors=[p,1-p],means=means,cov=covariance)
     [y_test, x_test]=mf.Get_Sythetic(K,d,N_test, priors=[[p,1-p]],means=means,cov=covariance)
     opti_bayes.clf.fit(x_train,y_train)
-    # data=[x_train,y_train,x_test,y_test]
-    data=[x_train,y_train,x_train,y_train]
+    data=[x_train,y_train,x_test,y_test]
     temp1=mf.Eval(data,opti_bayes)
-    temp=temp1-y_train
+    temp=temp1-y_test
     temp[temp!=0]=1
     temp=1-np.asarray(np.mean(temp,axis=1),dtype=float)
     performance.append(temp)
     itr+=1
-    if itr==9:
-        print("Now")
     print("Completed {} of {} iterations".format(itr,len(priors)-1))
 performance=np.asarray(performance)
    #%% 
-mf.Plot_Performance(performance,priors,"Training Set Performance 10-D Gaussian")
+mf.Plot_Performance(performance,priors,"Testing Set Performance 2-D Gaussian")
 #%%    
 p=0.5
 opti_bayes=mf.Bayes_Dec_Boundary(means[:,0],means[:,1],covariance[:,:,0],covariance[:,:,1],p,1-p)

@@ -267,8 +267,7 @@ def Plot_Figs(cluster_label_hist,data,K,title_name,**kwargs):
         y=plot_data[:,1]
         colormap = plt.cm.get_cmap("Set1")
         marker="+" if k==0 else "^"
-        plot.scatter(x,y,color=colormap(k),s=50 if k==0 else 5,marker=marker)
-                                        
+        plot.scatter(x,y,color=colormap(k),s=50 if k==0 else 5,marker=marker)                           
     final_title_name=title_name          
     if flag==0:
         plot.title(final_title_name,fontsize=21)              #Single plot name
@@ -292,8 +291,8 @@ def Plot_Figs(cluster_label_hist,data,K,title_name,**kwargs):
             y=Bayesian_Boundary(m1,m2,std1,std2,x)
         plot.plot(x,y,color=colormap(k+1))
         
-    plot.xlim(-5,5)
-    plot.ylim(-5,5)
+    plot.xlim(data.min(), data.max())
+    plot.ylim(data.min(), data.max())  
     # plot.show()
     # print("Done")
 #%% MESH PLOTS
@@ -304,6 +303,7 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
     classifier_weights=kwargs.get("classifier_weights",-1) #Only baye's classifier has no weights
     bay=kwargs.get("bay",-1) #If the baye's decision boundary should be passed
     subplot=kwargs.get("subplot",plt) 
+    quad_Dec=kwargs.get("quad_Dec",False) 
     Fisher_or_Log=kwargs.get("Fisher_or_Log","Neither")
     X1, X2 = np.meshgrid(np.arange(start=X_set[:, 0].min()-1,stop=X_set[:, 0].max()+1,step=0.1),
                          np.arange(start=X_set[:,1].min()-1,stop=X_set[:,1].max()+1,step=0.1))
@@ -315,6 +315,10 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
         
         # for i in range(len(test_points)):
         #     range_of_points[i]=(np.sign(bay.dec_bound(test_points[i]))+1)/2
+        ###########################################QUADRATIC TRANSFORM############################
+        if quad_Dec:
+            test_points=np.concatenate((test_points,np.zeros((test_points.shape[0],3))),axis=1)        
+        ###########################################QUADRATIC TRANSFORM############################
         range_of_points=bay.dec_bound(test_points)
             
             
@@ -323,11 +327,11 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
         cs=subplot.contourf(X1, X2,classifier_regions,alpha = 0.75,levels=[-1,0,1],cmap = ListedColormap(('red', 'blue')))
     else:
         if Fisher_or_Log.lower()=="fischer":
-            range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True,fischer=True)
+            range_of_points=linear_classify(classifier_weights[0:3],test_points,0,only_classify=True,fischer=True)
         elif Fisher_or_Log.lower()=="logistic":
-            range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True,logistic=True)
+            range_of_points=linear_classify(classifier_weights[0:3],test_points,0,only_classify=True,logistic=True)
         else:
-            range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True)
+            range_of_points=linear_classify(classifier_weights[0:3],test_points,0,only_classify=True)
             
         classifier_regions=range_of_points.reshape(X1.shape) #Reshape it into a matrix        
         cs=subplot.contourf(X1, X2,classifier_regions,alpha = 0.75, cmap = ListedColormap(('red', 'blue')))
@@ -341,6 +345,14 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
         temp=np.zeros(len(test_points))
         # for i in range(len(test_points)):
         #     temp[i]=bay.dec_bound(test_points[i])
+        
+        ###########################################QUADRATIC TRANSFORM############################
+        if quad_Dec:
+            if type(classifier_weights)!= np.ndarray:
+                test_points=test_points
+            else:
+                test_points=np.concatenate((test_points,np.zeros((test_points.shape[0],3))),axis=1)
+        ###########################################QUADRATIC TRANSFORM############################
         temp=bay.dec_bound(test_points)
             
         temp=np.expand_dims(np.asarray(temp),axis=1)
@@ -380,12 +392,7 @@ class Bayes_Dec_Boundary(object):
         +np.log(np.linalg.det(self.c2)))+np.log(self.p1/self.p2)
         
         from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-        self.clf = QuadraticDiscriminantAnalysis(priors=[self.p1,self.p2])
-        
-        # self.A=np.linalg.inv(self.c1-self.c2)
-        # self.B=2*(self.c2_inv*self.m2-self.c1_inv*self.m1).T
-        # self.D=(self.m1.t@self.c1_inv@self.m1-self.m2.t@self.c2_inv@self.m2)
-        # self.D=self.D+np.log(np.linalg.det(self.c1)/np.linalg.det(self.c1))+np.log(self.p1/self.p2)
+        self.clf = QuadraticDiscriminantAnalysis(priors=[self.p1,self.p2],store_covariance=True)
         
     def dec_bound(self,x):
         #Breaking up the computation to avoid memory issues
@@ -409,7 +416,8 @@ class Bayes_Dec_Boundary(object):
 
 
 #%% SUBPLOTS   
-def Plot_SubPlots(data,title_name,x_name,y_name,opti_bayes):
+def Plot_SubPlots(data,title_name,x_name,y_name,opti_bayes,**kwargs):
+    quad_Dec=kwargs.get("quad_Dec",False)
     x_train=data[0]
     y_train=data[1]
     x_test=data[2]
@@ -420,20 +428,21 @@ def Plot_SubPlots(data,title_name,x_name,y_name,opti_bayes):
 
     # PERCEPTRON
     percep_pred=pocket_percep(x_train,y_train)
-    MESH_plot(y_test,x_test,"Pocket Perceptron ",classifier_weights=percep_pred,subplot=axs[0],bay=opti_bayes)
+    MESH_plot(y_test,x_test,"Pocket Perceptron ",classifier_weights=percep_pred,subplot=axs[0],bay=opti_bayes,quad_Dec=quad_Dec)
     
     # LINEAR LEAST SQUARES
     linear_pred=linear_least_squares(x_train,y_train)
-    MESH_plot(y_test,x_test,"Linear Least Squares",classifier_weights=linear_pred,subplot=axs[1],bay=opti_bayes)
+    MESH_plot(y_test,x_test,"Linear Least Squares",classifier_weights=linear_pred,subplot=axs[1],bay=opti_bayes,quad_Dec=quad_Dec)
     
     # LOGISTIC REGRESSION
     log_pred=log_reg(x_train,y_train)
     MESH_plot(y_test,x_test,"Logistic Regression ",classifier_weights=log_pred,subplot=axs[2],bay=opti_bayes
-              ,Fisher_or_Log="Logistic")
+              ,Fisher_or_Log="Logistic",quad_Dec=quad_Dec)
     
     # FISCHER LINEAR DISCRIMINANT ANALYSIS
     flda_pred=FLDA(x_train,y_train)
-    MESH_plot(y_test,x_test,"Fischer's LDA ",classifier_weights=flda_pred,subplot=axs[3],bay=opti_bayes,Fisher_or_Log="Fischer")
+    MESH_plot(y_test,x_test,"Fischer's LDA ",classifier_weights=flda_pred,subplot=axs[3],
+              bay=opti_bayes,Fisher_or_Log="Fischer",quad_Dec=quad_Dec)
     
     #Baye's PLOTS
     # y_pred=np.zeros(len(x_test))
@@ -448,7 +457,7 @@ def Plot_SubPlots(data,title_name,x_name,y_name,opti_bayes):
         ax.remove()
     axbig = fig.add_subplot(gs[2, :])
         
-    MESH_plot(y_test,x_test,"Baye's Classifier ",subplot=axbig,bay=opti_bayes)    
+    MESH_plot(y_test,x_test,"Baye's Classifier ",subplot=axbig,bay=opti_bayes,quad_Dec=quad_Dec)    
     fig.text(0.5, 0.9, title_name, ha='center',fontsize=21)
     fig.text(0.5, 0.1, x_name, ha='center',fontsize=21)
     fig.text(0.10, 0.5, y_name, va='center', rotation='vertical',fontsize=21)         
@@ -457,7 +466,8 @@ def Eval(data,opti_bayes):
     x_train=data[0]
     y_train=data[1]
     x_test=data[2]
-    y_test=data[3]
+    y_test=data[3] 
+        
     # PERCEPTRON
     percep_pred=pocket_percep(x_train,y_train)    
     [error_percep,y1]=linear_classify(percep_pred,x_test,y_test)
@@ -480,13 +490,13 @@ def Eval(data,opti_bayes):
     #     y5[i]=(np.sign(opti_bayes.dec_bound(x_test[i,:]))+1)/2
     y5=opti_bayes.dec_bound(x_test)
     # y_pred=gnb.fit(x_train, y_train).predict(x_test) #Populate the mesh grid    
-    error=y_test[y_test!=y5]   
-    error_baye=len(error) /len(y_test)
+    # error=y_test[y_test!=y5]   
+    # error_baye=len(error) /len(y_test)
     
-    from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-    clf = QuadraticDiscriminantAnalysis(priors=[opti_bayes.p1,opti_bayes.p2])
-    clf.fit(x_train, y_train)
-    y5=clf.predict(x_test)
+    # from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+    # clf = QuadraticDiscriminantAnalysis(priors=[opti_bayes.p1,opti_bayes.p2])
+    # clf.fit(x_train, y_train)
+    # y5=clf.predict(x_test)
 
     # return np.asarray([1-error_percep,1-error_lin,1-error_logistic,1-error_flda,1-error_baye])
     return y1,y2,y3,y4,y5
