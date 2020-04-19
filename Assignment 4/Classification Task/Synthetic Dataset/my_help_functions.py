@@ -17,7 +17,7 @@ def pocket_percep(x_train,y_train):
     
     y=np.expand_dims(y,axis=1)
     x=np.concatenate((bias,x_train),axis=1)
-    learning_rate=0.001
+    learning_rate=0.01
 
     W=np.zeros((x_train.shape[1]+1))
 
@@ -83,7 +83,7 @@ def log_reg(x_train,y_train):
     
     y=np.expand_dims(y,axis=1)
     x=np.concatenate((bias,x_train),axis=1)
-    learning_rate=0.001
+    learning_rate=0.1
     W=np.zeros((x_train.shape[1]+1))
     
     for i in range(100):
@@ -308,6 +308,15 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
     X1, X2 = np.meshgrid(np.arange(start=X_set[:, 0].min()-1,stop=X_set[:, 0].max()+1,step=0.1),
                          np.arange(start=X_set[:,1].min()-1,stop=X_set[:,1].max()+1,step=0.1))
     test_points=np.array([X1.ravel(), X2.ravel()]).T
+    
+    ###########################################QUADRATIC TRANSFORM############################
+    if quad_Dec:
+        test_points=np.concatenate((test_points,np.zeros((test_points.shape[0],3))),axis=1)
+        test_points[:,2]=test_points[:,0]**2
+        test_points[:,3]=test_points[:,1]**2
+        test_points[:,4]=test_points[:,0]*test_points[:,1]  
+    ###########################################QUADRATIC TRANSFORM############################
+        
     if type(classifier_weights)!= np.ndarray:
         # range_of_points=classifier_weights.predict(test_points)
         range_of_points=np.zeros(len(test_points))
@@ -315,10 +324,6 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
         
         # for i in range(len(test_points)):
         #     range_of_points[i]=(np.sign(bay.dec_bound(test_points[i]))+1)/2
-        ###########################################QUADRATIC TRANSFORM############################
-        if quad_Dec:
-            test_points=np.concatenate((test_points,np.zeros((test_points.shape[0],3))),axis=1)        
-        ###########################################QUADRATIC TRANSFORM############################
         range_of_points=bay.dec_bound(test_points)
             
             
@@ -327,11 +332,11 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
         cs=subplot.contourf(X1, X2,classifier_regions,alpha = 0.75,levels=[-1,0,1],cmap = ListedColormap(('red', 'blue')))
     else:
         if Fisher_or_Log.lower()=="fischer":
-            range_of_points=linear_classify(classifier_weights[0:3],test_points,0,only_classify=True,fischer=True)
+            range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True,fischer=True)
         elif Fisher_or_Log.lower()=="logistic":
-            range_of_points=linear_classify(classifier_weights[0:3],test_points,0,only_classify=True,logistic=True)
+            range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True,logistic=True)
         else:
-            range_of_points=linear_classify(classifier_weights[0:3],test_points,0,only_classify=True)
+            range_of_points=linear_classify(classifier_weights,test_points,0,only_classify=True)
             
         classifier_regions=range_of_points.reshape(X1.shape) #Reshape it into a matrix        
         cs=subplot.contourf(X1, X2,classifier_regions,alpha = 0.75, cmap = ListedColormap(('red', 'blue')))
@@ -346,13 +351,13 @@ def MESH_plot(y_set,X_set,title_name,**kwargs):
         # for i in range(len(test_points)):
         #     temp[i]=bay.dec_bound(test_points[i])
         
-        ###########################################QUADRATIC TRANSFORM############################
-        if quad_Dec:
-            if type(classifier_weights)!= np.ndarray:
-                test_points=test_points
-            else:
-                test_points=np.concatenate((test_points,np.zeros((test_points.shape[0],3))),axis=1)
-        ###########################################QUADRATIC TRANSFORM############################
+        # ###########################################QUADRATIC TRANSFORM############################
+        # if quad_Dec:
+        #     if type(classifier_weights)!= np.ndarray:
+        #         test_points=test_points
+        #     else:
+        #         test_points=np.concatenate((test_points,np.zeros((test_points.shape[0],3))),axis=1)
+        # ###########################################QUADRATIC TRANSFORM############################
         temp=bay.dec_bound(test_points)
             
         temp=np.expand_dims(np.asarray(temp),axis=1)

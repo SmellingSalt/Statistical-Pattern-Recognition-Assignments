@@ -72,16 +72,16 @@ def plot_confusion_matrix(cm,
     thresh = cm.max() / 1.5 if normalize else cm.max() / 2
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         if normalize:
-            plt.text(j, i, "{:0.2f}%".format(cm[i, j]*100),
+            plt.text(j, i, "{:0.2f}".format(cm[i, j]),
                      horizontalalignment="center",
                      color="black" if cm[i, j] > thresh else "white",fontsize=20)
         else:
-            plt.text(j, i, "{:0.2f}%".format(100*cm[i, j]),
+            plt.text(j, i, "{:0.2f}".format(cm[i, j]),
                      horizontalalignment="center",
                      color="black" if cm[i, j] > thresh else "white",fontsize=20)
 
 
     # plt.tight_layout()    
-    plt.ylabel('True label',fontsize=25)
-    plt.xlabel('\nPredicted label\n Accuracy={:0.2f} %; Error={:0.2f} %'.format(accuracy, misclass),fontsize=25)
+    plt.ylabel('Predicted label',fontsize=25)
+    plt.xlabel('\n True label\n Accuracy={:0.2f} %; Error={:0.2f} %'.format(accuracy, misclass),fontsize=25)
     plt.show()

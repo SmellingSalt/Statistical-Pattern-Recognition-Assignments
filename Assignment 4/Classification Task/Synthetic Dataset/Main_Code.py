@@ -14,10 +14,10 @@ d=2 #How many dimensions
 p=0.5
 
 means=[np.zeros(d),np.zeros(d)]
-means=[[0,3],[3,2]]
+means=[[0,0],[0,0]]
 means=np.squeeze(np.asarray(means)).T
-covariance=np.dstack(([[1, -0.5],[-0.5, 1]],[[1, 0.9],[0.9, 1]]))
-covariance=np.dstack(([[1, 0.9],[0.9, 1]],[[1, 0],[0, 1]]))
+# covariance=np.dstack(([[1, -0.5],[-0.5, 1]],[[1, 0.9],[0.9, 1]]))
+covariance=np.dstack(([[1, 0],[0, 1]],[[1, 0.9],[0.9, 1]]))
 # covariance=np.dstack((np.eye(d),np.eye(d)))
 #%% Creating the bayes object
 opti_bayes=mf.Bayes_Dec_Boundary(means[:,0],means[:,1],covariance[:,:,0],covariance[:,:,1],p,1-p)
@@ -48,12 +48,12 @@ opti_bayes.clf.fit(x_train,y_train)
 data=[x_train,y_train,x_test,y_test]
 [y_pred1,y_pred2,y_pred3,y_pred4,y_pred5]=mf.Eval(data,opti_bayes)
 #%%
-# mf.Plot_Figs(y_test,x_test,K,"10k Points")
+mf.Plot_Figs(y_test,x_test,K,"10k Points")
 #%%
-# mf.Plot_SubPlots(data,"Decision Boundaries on Testing Set: 2D Gaussian","x1","x2",opti_bayes,quad_Dec=quad_Dec)
+mf.Plot_SubPlots(data,"Decision Boundaries on Testing Set: 2D Gaussian","x1","x2",opti_bayes,quad_Dec=quad_Dec)
 from Confusion_Kaggle import plot_confusion_matrix
 import sklearn.metrics
-typ=" Testing Set 10D"
+typ=" Testing Set 2D"
 name1="\n Perceptron"+typ
 name2="\n Least Squares"+typ
 name3="\n Logistic Regression"+typ
@@ -64,11 +64,11 @@ name5="\n Baye's Classifier"+typ
 Class_labels= ["Class 0", "Class 1"]
 
 
-k1=sklearn.metrics.confusion_matrix(y_pred1,y_test,normalize='true')
-k2=sklearn.metrics.confusion_matrix(y_pred2,y_test,normalize='true')
-k3=sklearn.metrics.confusion_matrix(y_pred3,y_test,normalize='true')
-k4=sklearn.metrics.confusion_matrix(y_pred4,y_test,normalize='true')
-k5=sklearn.metrics.confusion_matrix(y_pred5,y_test,normalize='true')
+k1=sklearn.metrics.confusion_matrix(y_pred1,y_test)
+k2=sklearn.metrics.confusion_matrix(y_pred2,y_test)
+k3=sklearn.metrics.confusion_matrix(y_pred3,y_test)
+k4=sklearn.metrics.confusion_matrix(y_pred4,y_test)
+k5=sklearn.metrics.confusion_matrix(y_pred5,y_test)
 
 plot_confusion_matrix(k1, Class_labels,title=name1)
 plot_confusion_matrix(k2, Class_labels,title=name2)

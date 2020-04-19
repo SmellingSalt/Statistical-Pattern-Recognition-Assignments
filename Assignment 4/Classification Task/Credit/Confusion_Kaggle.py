@@ -7,7 +7,7 @@ def plot_confusion_matrix(cm,
                           target_names,
                           
                           cmap=None,
-                          normalize=True,**kwargs):
+                          normalize=False,**kwargs):
     """
     given a sklearn confusion matrix (cm), make a nice plot
 
@@ -47,13 +47,13 @@ def plot_confusion_matrix(cm,
     accuracy = (np.trace(cm) / float(np.sum(cm)))*100
     misclass = (100 - accuracy)
 
-    if cmap is None:
-        # cmap = plt.get_cmap('YlGnBu')
-        cmap = plt.get_cmap('winter')
+    # if cmap is None:
+    #     cmap = plt.get_cmap('YlOrRd')
+    cmap = plt.get_cmap('YlOrRd')
     
     # plt.rcParams.update({'font.size': 20})
     plt.figure(num=None, figsize=(10, 10), dpi=150, facecolor='w', edgecolor='k')    
-    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.imshow(cm, interpolation='nearest')
     plt.rcParams.update({'font.size': 15})
     plt.title(title,fontsize=25)
     plt.rcParams.update({'font.size': 20})
@@ -70,19 +70,18 @@ def plot_confusion_matrix(cm,
 
 
     thresh = cm.max() / 1.5 if normalize else cm.max() / 2
-    thresh=thresh*100
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         if normalize:
-            plt.text(j, i, "{:0.2f}%".format(cm[i, j]*100),
+            plt.text(j, i, "{:0.2f}".format(cm[i, j]),
                      horizontalalignment="center",
-                     color="white" if cm[i, j] > thresh else "black",fontsize=20)
+                     color="black" if cm[i, j] > thresh else "white",fontsize=20)
         else:
-            plt.text(j, i, "{:,}".format(cm[i, j]),
+            plt.text(j, i, "{:0.2f}".format(cm[i, j]),
                      horizontalalignment="center",
-                     color="white" if cm[i, j] > thresh else "black",fontsize=20)
+                     color="black" if cm[i, j] > thresh else "white",fontsize=20)
 
 
     # plt.tight_layout()    
-    plt.ylabel('True label',fontsize=25)
-    plt.xlabel('\nPredicted label\n Accuracy={:0.2f} %; Error={:0.2f} %'.format(accuracy, misclass),fontsize=25)
+    plt.ylabel('Predicted label',fontsize=25)
+    plt.xlabel('\n True label\n Accuracy={:0.2f} %; Error={:0.2f} %'.format(accuracy, misclass),fontsize=25)
     plt.show()

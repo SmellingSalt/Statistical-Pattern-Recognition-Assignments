@@ -58,7 +58,7 @@ data_clean = pd.concat([data[numvars], dummyvars], axis = 1)
 # Unscaled, unnormalized data
 X_clean = data_clean.drop('classification', axis=1)
 y_clean = data_clean['classification']
-X_train_clean, X_test_clean, y_train_clean, y_test_clean = train_test_split(X_clean,y_clean,test_size=0.2, random_state=1)
+X_train_clean, X_test_clean, y_train_clean, y_test_clean = train_test_split(X_clean,y_clean,test_size=0.3, random_state=1)
 
 #%% Oversampling to fix imbalance
 from imblearn.over_sampling import SMOTE
@@ -69,8 +69,8 @@ from imblearn.over_sampling import SMOTE
 # Apply SMOTE
 sm = SMOTE()
 X_train_clean_res, y_train_clean_res = sm.fit_sample(X_train_clean, y_train_clean)
-# X_train_clean_res=X_train_clean+0
-# y_train_clean_res=y_train_clean+0
+X_train_clean_res=X_train_clean+0
+y_train_clean_res=y_train_clean+0
 # Print number of 'good' credits and 'bad credits, should be fairly balanced now
 print("Before/After clean")
 unique, counts = np.unique(y_train_clean, return_counts=True)
@@ -100,17 +100,19 @@ y_train_clean_res=y_train_clean_res.to_numpy()
 X_test_clean=X_test_clean.to_numpy()
 y_test_clean=y_test_clean.to_numpy()
 data=[X_train_clean_res,y_train_clean_res,X_test_clean, y_test_clean]
+# data=[X_train_clean_res,y_train_clean_res,X_train_clean_res, y_train_clean_res]
+
 [y_pred1,y_pred2,y_pred3,y_pred4,y_test]=as4.Eval(data)
 
 #%%CONFUSION PLOTS
 from Confusion_Kaggle import plot_confusion_matrix
 import sklearn
-split="80 : 20"
+split="70 : 30 train set"
 name1="\n Perceptron "+split
 name2="\n Logistic "+split
 name3="\n Least Squares "+split
 name4="\n Fischer's LDA "+split
-Class_labels= [str(cla) for cla in np.unique(y_test)]
+Class_labels= ['Bad Credit', 'Good Credit']
 
 
 k1=sklearn.metrics.confusion_matrix(y_pred1+1,y_test+1,normalize=None)
