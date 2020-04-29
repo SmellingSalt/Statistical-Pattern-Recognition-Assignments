@@ -189,7 +189,7 @@ def MNIST_subplot1(Collect_Images,title_name):
         axs[itr].axis('off')
         itr+=1
         
-        axs[itr].set_title("Reconstructed Image",fontsize=15)
+        axs[itr].set_title("Denoised Image",fontsize=15)
         axs[itr].imshow(Recon[:,i].reshape(data_len,data_len),cmap='gray')
         axs[itr].axis('off')
         itr+=1

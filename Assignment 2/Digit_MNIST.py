@@ -10,8 +10,8 @@ import numpy as np
 import my_functions as mf
 #%% MAIN CODE
 
-dataset=[4,3,8]
-test_dataset=[0,1,2,3,4,5,6,7,8,9]
+dataset=[1,4,3,8]
+test_dataset=[1,4,3,8]
 
 sze=28 #size of the MNIST data
 data=mf.get_MNIST(dataset,sze)
@@ -20,6 +20,8 @@ test_data=mf.get_MNIST(test_dataset,sze)
 labels=test_data[:,1]
 test_data=test_data[:,1:]
 data=data[:,1:]
+#Adding noise to test data
+test_data=test_data+np.random.randn(test_data.shape[0],test_data.shape[1])*0.5
 
 num_hidden_units=49
 learn_rate=0.01
@@ -40,10 +42,10 @@ Collect_Images=[images,data1,data2]
 
 Plot_Title1="Test at k="+str(k) +" with h="+str(num_hidden_units)+" and trained on "+str(dataset)
 mf.MNIST_subplot1(Collect_Images,Plot_Title1)
-#%%
+#%
 Plot_Title2="Visualising weights for data trained on and trained on "+str(dataset)
-mf.MNIST_subplot2(w.T,Plot_Title2)
-#%%
+# mf.MNIST_subplot2(w.T,Plot_Title2,True)
+#%
 pick_random_images=np.random.randint(0,test_data.shape[0],100)
-mf.MNIST_subplot2(test_data[pick_random_images,:],"The Quantized MNIST Data-Set")
+# mf.MNIST_subplot2(test_data[pick_random_images,:],"The Quantized MNIST Data-Set",True)
 
