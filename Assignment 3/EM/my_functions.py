@@ -106,7 +106,9 @@ def get_MNIST(req_class,sze):
     
     return(train_sff)   
 #%% SYNTHETIC DATASET
-def Get_Sythetic(K,d,N,**kwargs):   
+def Get_Sythetic(K,d,N,**kwargs):
+    """K=Number of clusters, d=dimensions, N= Number of data points, 
+    means=Vector of d dmensions with means,covariance=covariance matrix """
     means=kwargs.get('means',np.random.randint(-100,100,size=[d,K]))
     covariance=kwargs.get('cov', get_random_cov(K,d))
     # covariance=kwargs.get('cov', np.dstack([np.eye(d)]*K))
@@ -115,7 +117,7 @@ def Get_Sythetic(K,d,N,**kwargs):
     for n in range(N):
         pick_distribution=np.random.multinomial(1,priors,size=1)#one hot vector indicating which distribution to use
         k=np.where(pick_distribution==1)[1][0] #Index of the 1 in the one-hot vector
-        data[:,0]=k
+        data[n,0]=k
         data[n,1:]=np.random.multivariate_normal(means[:,k],covariance[:,:,k],size=1)
 
     #% Normalizing
